@@ -1,0 +1,24 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Sign Up</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    </head>
+    <body>
+        <h1>Sign Up</h1>
+        <div th:if="${userExists}">
+            User with username  "<span th:text="${user.username}"></span>" already exists!
+        </div>
+        <form th:action="@{/signup}" th:object="${user}" method="post">
+            <p>
+                <input type="text" name="username" placeholder="Username" th:field="*{username}" required autofocus/>
+                <td th:if="${#fields.hasErrors('username')}" th:errors="*{username}">Username error</td>
+            </p>
+            <p>
+                <input type="password" name="password" placeholder="Password" th:field="*{password}" required autofocus/>
+                <td th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Password error</td>
+            </p>
+            <p><input type="submit" value="Sign Up"/></p>
+        </form>
+    </body>
+</html>
