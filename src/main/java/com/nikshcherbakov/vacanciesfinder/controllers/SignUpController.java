@@ -3,6 +3,7 @@ package com.nikshcherbakov.vacanciesfinder.controllers;
 import com.nikshcherbakov.vacanciesfinder.models.User;
 import com.nikshcherbakov.vacanciesfinder.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -28,6 +29,12 @@ public class SignUpController {
 
     @GetMapping(value = "/signup")
     public String showSignUp(Model model) {
+
+        // Checking if a user is authenticated already
+        if (isUserAuthenticated()) {
+            return "redirect:/account";
+        }
+
         model.addAttribute("user", new User());
         return "/signup";
     }
@@ -38,6 +45,13 @@ public class SignUpController {
 
         // Checking if a form does not contain errors
         if (bindingResult.hasErrors()) {
+            return "signup";
+        }
+
+        // Checking if user.password and user.passwordConfirm are equal
+        if (!user.getPassword().equals(user.getPasswordConfirm())) {
+            model.addAttribute("passwordDoesNotMatchPasswordConfirm", true);
+            model.addAttribute("user", user);
             return "signup";
         }
 
@@ -55,7 +69,7 @@ public class SignUpController {
         // Authenticate user after successful registration
         authenticateUserAndSetSession(username, password, request);
 
-        return "redirect:/index"; // todo CHANGE_AFTER
+        return "redirect:/account";
     }
 
     private void authenticateUserAndSetSession(String username, String password,
@@ -70,6 +84,11 @@ public class SignUpController {
 
         SecurityContextHolder.getContext().setAuthentication(authenticatedUser);
 
+    }
+
+    private boolean isUserAuthenticated() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && !(authentication instanceof AnonymousAuthenticationToken);
     }
 
 }

@@ -9,6 +9,8 @@ import javax.validation.constraints.Size;
 import java.util.Collection;
 import java.util.Set;
 
+// TODO Разбраться как работает BCryptEncoder, установить корректный максимальный размер для пароля
+
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {
@@ -26,6 +28,9 @@ public class User implements UserDetails {
     @NotNull
     @Size(min = 6, max = 500)
     private String password;
+
+    @Transient
+    private String passwordConfirm;
 
     @Column(nullable = false)
     private boolean enabled = true;
@@ -63,6 +68,14 @@ public class User implements UserDetails {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getPasswordConfirm() {
+        return passwordConfirm;
+    }
+
+    public void setPasswordConfirm(String passwordConfirm) {
+        this.passwordConfirm = passwordConfirm;
     }
 
     public boolean isEnabled() {

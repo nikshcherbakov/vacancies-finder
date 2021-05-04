@@ -1,24 +1,48 @@
-<!DOCTYPE HTML>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
-    <head>
-        <title>Sign Up</title>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    </head>
-    <body>
-        <h1>Sign Up</h1>
-        <div th:if="${userExists}">
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Please sign up</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <link href="https://getbootstrap.com/docs/4.0/examples/signin/signin.css" rel="stylesheet" crossorigin="anonymous">
+</head>
+<body wfd-invisible="true">
+<div class="container">
+    <form class="form-signin" method="post" th:action="@{/signup}" th:object="${user}">
+        <h2 class="form-signin-heading">Please sign up</h2>
+        <div th:if="${userExists}" class="alert alert-danger" role="alert">
             User with username  "<span th:text="${user.username}"></span>" already exists!
         </div>
-        <form th:action="@{/signup}" th:object="${user}" method="post">
-            <p>
-                <input type="text" name="username" placeholder="Username" th:field="*{username}" required autofocus/>
-                <td th:if="${#fields.hasErrors('username')}" th:errors="*{username}">Username error</td>
-            </p>
-            <p>
-                <input type="password" name="password" placeholder="Password" th:field="*{password}" required autofocus/>
-                <td th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Password error</td>
-            </p>
-            <p><input type="submit" value="Sign Up"/></p>
-        </form>
-    </body>
-</html>
+        <div th:if="${passwordDoesNotMatchPasswordConfirm}" class="alert alert-danger" role="alert">
+            Password does not match password confirmation!
+        </div>
+        <p>
+            <label for="username" class="sr-only">E-mail</label>
+            <input type="text" pattern="^[a-zA-Z0-9.!#$%&’*+\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"
+                   th:field="*{username}" id="username" name="username" class="form-control" placeholder="E-mail"
+                   required="" autofocus="">
+        </p>
+        <div th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="alert alert-danger" role="alert">
+            Username error
+        </div>
+        <p>
+            <label for="password" class="sr-only">Password</label>
+            <input type="password" th:field="*{password}" id="password" name="password" class="form-control" placeholder="Password" required="">
+        </p>
+        <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="alert alert-danger" role="alert">
+            Password error
+        </div>
+        <p>
+            <label for="passwordConfirm" class="sr-only">Password Confirm</label>
+            <input type="password" th:field="*{passwordConfirm}" id="passwordConfirm" name="password" class="form-control" placeholder="Password Confirm" required="">
+        </p>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign up</button>
+        <p style="padding-top: 50px;">
+            <a href="/login">У меня уже есть аккаунт</a>
+        </p>
+    </form>
+</div>
+<iframe scrolling="no" frameborder="0" style="border: 0px; height: 50px; width: 48px; left: 871px; top: 96px; z-index: 2147483647; position: absolute;" src="chrome-extension://ahkjpbeeocnddjkakilopmfdlnjdpcdm/snapshot_resources/kpm/kpm_promo_balloon.html?id=13390"></iframe></body></html>

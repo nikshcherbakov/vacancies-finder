@@ -13,7 +13,7 @@ public class DefaultController {
     }
 
     @GetMapping(value = "/login")
-    public String handleSignIn() {
+    public String showSignIn() {
         return "login";
     }
 
