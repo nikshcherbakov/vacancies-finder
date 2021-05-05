@@ -37,18 +37,20 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable()
-                .authorizeRequests()
-                .antMatchers("/", "/index", "/signup", "/css/**", "/images/**").permitAll()
-                .anyRequest().authenticated()
+        http
+                .csrf().disable()
+                    .authorizeRequests()
+                    .antMatchers("/", "/index", "/signup", "/accountconfirm",
+                            "/css/**", "/images/**").permitAll()
+                    .anyRequest().authenticated()
                 .and()
-                .formLogin()
-                .defaultSuccessUrl("/account", true)
-                .loginPage("/login")
-                .permitAll()
+                    .formLogin()
+                    .defaultSuccessUrl("/account", true)
+                    .loginPage("/login")
+                    .permitAll()
                 .and()
-                .logout()
-                .permitAll(); // todo ADD ACCESSDENIEDHANDLER
+                    .logout()
+                    .permitAll(); // todo ADD ACCESSDENIEDHANDLER
     }
 
     @Autowired

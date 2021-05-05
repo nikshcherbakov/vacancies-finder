@@ -1,19 +1,20 @@
 package com.nikshcherbakov.vacanciesfinder.controllers;
 
 import com.nikshcherbakov.vacanciesfinder.models.User;
+import com.nikshcherbakov.vacanciesfinder.repositories.UserRepository;
+import com.nikshcherbakov.vacanciesfinder.services.MailService;
 import com.nikshcherbakov.vacanciesfinder.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -25,11 +26,16 @@ public class SignUpController {
     UserService userService;
 
     @Autowired
+    MailService mailService;
+
+    @Autowired
     AuthenticationManager authenticationManager;
+
+    @Autowired
+    UserRepository userRepository;
 
     @GetMapping(value = "/signup")
     public String showSignUp(Model model) {
-
         // Checking if a user is authenticated already
         if (isUserAuthenticated()) {
             return "redirect:/account";
@@ -42,7 +48,6 @@ public class SignUpController {
     @PostMapping(value = "/signup")
     public String handleSignUp(@Valid User user, BindingResult bindingResult,
                                Model model, HttpServletRequest request) {
-
         // Checking if a form does not contain errors
         if (bindingResult.hasErrors()) {
             return "signup";
@@ -66,23 +71,35 @@ public class SignUpController {
             return "signup";
         }
 
-        // Authenticate user after successful registration
-        authenticateUserAndSetSession(username, password, request);
+        // Sending a confirmation message to a user by email
+        mailService.sendConfirmMessage(user);
 
-        return "redirect:/account";
+        return "confirmation-sent";
     }
 
-    private void authenticateUserAndSetSession(String username, String password,
-                                               HttpServletRequest request) {
-        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(username, password);
+    @GetMapping("/accountconfirm")
+    String confirmUserByEmail(@RequestParam(name = "user") String username,
+                              @RequestParam(name = "hashval") String hash) {
+        // Handling incorrect URLs
+        if (username == null || hash == null) {
+            return "403";
+        }
 
-        // Generate session if one doesn't exist
-        request.getSession();
+        User user = userRepository.findByUsername(username);
 
-        token.setDetails(new WebAuthenticationDetails(request));
-        Authentication authenticatedUser = authenticationManager.authenticate(token);
-
-        SecurityContextHolder.getContext().setAuthentication(authenticatedUser);
+        if (user != null) {
+            // User exists
+            if (user.getPassword().equals(hash) && !user.isEnabled()) {
+                user.setEnabled(true);
+                userRepository.save(user);
+                return "successful-confirmation";
+            } else {
+                return "403";
+            }
+        } else {
+            // No such user in the database
+            return "403";
+        }
 
     }
 

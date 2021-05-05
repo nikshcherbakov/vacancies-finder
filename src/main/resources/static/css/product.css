@@ -101,3 +101,11 @@ img.feature-thumbnail-2 {
   padding-top: 25px;
   width: 250px;
 }
+
+h2.info-heading {
+  padding: 100px 100px 50px;
+}
+
+p.info-regular {
+  padding: 0 100px 100px;
+}

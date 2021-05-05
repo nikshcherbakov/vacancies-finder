@@ -33,7 +33,7 @@ public class User implements UserDetails {
     private String passwordConfirm;
 
     @Column(nullable = false)
-    private boolean enabled = true;
+    private boolean enabled = false;
 
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Role> roles;

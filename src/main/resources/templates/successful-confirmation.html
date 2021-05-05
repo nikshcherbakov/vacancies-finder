@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Successful Confirmation - Vacancies Finder</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    <link href="css/product.css" rel="stylesheet">
+</head>
+<body>
+    <div th:replace="fragments/header :: header"></div>
+
+    <div class="form-signin">
+        <h2 class="info-heading">Поздравляем!</h2>
+        <p class="info-regular">
+            Поздравляем, ваш аккаунт успешно подтвержден!
+            Теперь вы можете использовать его.
+        </p>
+        <p class="info-regular"><a href="/account">Личный кабинет</a></p>
+    </div>
+
+    <div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

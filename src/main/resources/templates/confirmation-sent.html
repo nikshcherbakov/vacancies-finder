@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmation Message Sent - Vacancies Finder</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    <link href="css/product.css" rel="stylesheet">
+</head>
+<body>
+<div th:replace="fragments/header :: header"></div>
+
+<div class="form-signin">
+    <h2 class="info-heading">Письмо с подтверждением</h2>
+    <p class="info-regular">
+        На указанный Вами при регистрации почтовый адрес было отправлено
+        письмо с подтверждением. Для продолжения регистрации, пожалуйста,
+        следуйте инструкциям, указанным в письме.
+    </p>
+    <p class="info-regular"><a href="/">На главную</a></p>
+</div>
+
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Access Error - Vacancies Finder</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    <link href="css/product.css" rel="stylesheet">
+</head>
+<body>
+    <div th:replace="fragments/header :: header"></div>
+
+    <div class="form-signin">
+        <h2 class="info-heading">Ошибочка вышла...</h2>
+        <p class="info-regular">
+            Скорее всего, вы перешли по несуществующей ссылке.
+            Пожалуйста, убедитесь, что ссылка, по которой вы переходите верна.
+        </p>
+    </div>
+
+    <div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>
