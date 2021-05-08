@@ -109,3 +109,11 @@ h2.info-heading {
 p.info-regular {
   padding: 0 100px 100px;
 }
+
+.account-form {
+  padding: 50px 100px 50px;
+}
+
+.account-form-default-bottom-padding {
+  padding-bottom: 1.7rem;
+}
