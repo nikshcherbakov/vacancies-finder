@@ -33,10 +33,21 @@ public class User implements UserDetails {
     private String passwordConfirm;
 
     @Column(nullable = false)
-    private boolean enabled = false;
+    private boolean enabled;
 
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Role> roles;
+
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private MailingPreference mailingPreference;
+
+    private String telegram;
+
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private TravelOptions travelOptions;
+
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private Salary salary;
 
     public User() {
     }
@@ -44,6 +55,18 @@ public class User implements UserDetails {
     public User(String username, String password) {
         this.username = username;
         this.password = password;
+
+        // Account is disabled by default
+        this.enabled = false;
+
+        // Telegram is optional
+        this.telegram = null;
+
+        // Travel options are not defined by default
+        this.travelOptions = null;
+
+        // Salary is not defined by default
+        this.salary = null;
     }
 
     public Long getId() {
@@ -114,14 +137,36 @@ public class User implements UserDetails {
         return true;
     }
 
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", enabled=" + enabled +
-                '}';
+    public MailingPreference getMailingPreference() {
+        return mailingPreference;
+    }
+
+    public void setMailingPreference(MailingPreference mailingPreference) {
+        this.mailingPreference = mailingPreference;
+    }
+
+    public String getTelegram() {
+        return telegram;
+    }
+
+    public void setTelegram(String telegram) {
+        this.telegram = telegram;
+    }
+
+    public TravelOptions getTravelOptions() {
+        return travelOptions;
+    }
+
+    public void setTravelOptions(TravelOptions travelOptions) {
+        this.travelOptions = travelOptions;
+    }
+
+    public Salary getSalary() {
+        return salary;
+    }
+
+    public void setSalary(Salary salary) {
+        this.salary = salary;
     }
 
 }

@@ -17,15 +17,16 @@
             <label for="username" class="col-sm-2 col-form-label">Логин (e-mail)</label>
             <div class="col-sm-10">
                 <input type="text" class="form-control" id="username" placeholder="Ваш e-mail"
-                       readonly>
+                       th:value="${user.username}" readonly>
             </div>
         </div>
-        <!--  Email checker  -->
+        <!--Email checker-->
         <div class="form-group row">
             <label for="sendByEmailChecker" class="col-sm-2 col-form-label"></label>
             <div class="col-sm-10">
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="" id="sendByEmailChecker">
+                    <input class="form-check-input" type="checkbox" value="" id="sendByEmailChecker"
+                           th:checked="${useEmail}">
                     <label class="form-check-label" for="sendByEmailChecker">
                         Использовать e-mail при рассылке подобранных вакансий
                     </label>
@@ -35,17 +36,9 @@
 
         <!--Password row-->
         <div class="form-group row">
-            <label for="password" class="col-sm-2 col-form-label">Пароль</label>
+            <label for="changePassword" class="col-sm-2 col-form-label">Пароль</label>
             <div class="col-sm-10">
-                <input type="text" class="form-control" id="password" placeholder="Ваш пароль"
-                       readonly>
-            </div>
-        </div>
-        <!--  Password a href  -->
-        <div class="form-group row">
-            <label for="changePassword" class="col-sm-2 col-form-label"></label>
-            <div class="col-sm-10">
-                <div id="changePassword">
+                <div id="changePassword" class="form-control-plaintext">
                     <a th:href="@{/changepassword}">Сменить пароль</a>
                 </div>
             </div>
@@ -56,7 +49,7 @@
             <label for="telegram" class="col-sm-2 col-form-label">Telegram</label>
             <div class="col-sm-10">
                 <input type="text" class="form-control" id="telegram"
-                       placeholder="Укажите ваш telegram">
+                       th:value="${user.telegram}" placeholder="Укажите ваш telegram">
             </div>
         </div>
         <!--  Telegram checker  -->
@@ -64,7 +57,8 @@
             <label for="sendByEmailChecker" class="col-sm-2 col-form-label"></label>
             <div class="col-sm-10">
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="" id="sendByTelegramChecker">
+                    <input class="form-check-input" type="checkbox" value=""
+                            id="sendByTelegramChecker" th:checked="${useTelegram}">
                     <label class="form-check-label" for="sendByTelegramChecker">
                         Использовать Telegram при рассылке подобранных вакансий
                     </label>
@@ -74,27 +68,46 @@
 
         <!--Location row-->
         <div class="form-group row">
-            <label for="googleMaps" class="col-sm-2 col-form-label">Место жительства</label>
+            <label for="chooseLocation" class="col-sm-2 col-form-label">Место жительства</label>
             <div class="col-sm-10">
-                <div id="googleMaps">Google Map goes here</div>
+                <input type="text" id="chooseLocation" class="form-control-plaintext"
+                value="Укажите Ваше место жительства на карте">
             </div>
         </div>
+        <div class="form-group row">
+            <label for="googleMaps" class="col-sm-2 col-form-label"></label>
+            <div class="col-sm-10">
+                <div id="googleMaps" style="height: 400px;"></div>
+            </div>
+        </div>
+
+        <input type="hidden" id="googleMapsLat" placeholder="Широта" th:value="${latitude}">
+        <input type="hidden" id="googleMapsLong" placeholder="Долгота" th:value="${longitude}">
 
         <!--Travel time row-->
         <div class="form-group row">
             <label for="travelTime" class="col-sm-2 col-form-label">Время в пути</label>
             <div class="col-sm-10">
                 <select class="custom-select mr-sm-2" id="travelTime">
-                    <option selected>Не имеет значения</option>
-                    <option value="15">Не более 15 минут</option>
-                    <option value="30">Не более 30 минут</option>
-                    <option value="45">Не более 45 минут</option>
-                    <option value="60">Не более 1 часа</option>
-                    <option value="75">Не более 1 часа 15 минут</option>
-                    <option value="90">Не более 1 часа 30 минут</option>
-                    <option value="105">Не более 1 часа 45 минут</option>
-                    <option value="120">Не более 2 часов</option>
-                    <option value="180">Не более 3 часов</option>
+                    <option th:selected="${travelTimeInMins == null}">Не имеет значения</option>
+                    <option th:selected="${travelTimeInMins == 15}"
+                            value="15">Не более 15 минут</option>
+                    <option th:selected="${travelTimeInMins == 30}"
+                            value="30">Не более 30 минут</option>
+                    <option th:selected="${travelTimeInMins == 45}"
+                            value="45">Не более 45 минут</option>
+                    <option th:selected="${travelTimeInMins == 60}"
+                            value="60">Не более 1 часа</option>
+                    <option th:selected="${travelTimeInMins == 75}"
+                            value="75">Не более 1 часа 15 минут</option>
+                    <option th:selected="${travelTimeInMins == 90}"
+                            value="90">Не более 1 часа 30 минут</option>
+                    <option th:selected="${travelTimeInMins == 105}"
+                            value="105">Не более 1 часа 45 минут</option>
+                    <option th:selected="${travelTimeInMins == 120}"
+                            value="120">Не более 2 часов</option>
+                    <option th:selected="${travelTimeInMins == 180}"
+                            value="180">Не более 3 часов</option>
                 </select>
             </div>
         </div>
@@ -104,21 +117,24 @@
                 <div class="col-sm-10">
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="gridRadios"
-                               id="travelByPublicTransport" value="public transport" checked>
-                        <label class="form-check-label" for="travelByPublicTransport">
-                            На общественном транспорте
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="gridRadios"
-                               id="travelByCar" value="car">
+                               id="travelByCar" value="car"
+                               th:checked="${travelBy == 'car' || travelBy == null}">
                         <label class="form-check-label" for="travelByCar">
                             На машине
                         </label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="gridRadios"
-                               id="travelByWalking" value="walking">
+                               id="travelByPublicTransport" value="public_transport"
+                               th:checked="${travelBy == 'public_transport'}">
+                        <label class="form-check-label" for="travelByPublicTransport">
+                            На общественном транспорте
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="gridRadios"
+                               id="travelByWalking" value="walking"
+                               th:checked="${travelBy == 'walking'}">
                         <label class="form-check-label" for="travelByWalking">
                             Пешком
                         </label>
@@ -132,13 +148,14 @@
             <label for="salary" class="col-sm-2 col-form-label">Желаемая зарплата</label>
             <div class="col-sm-7">
                 <input type="text" class="form-control" id="salary"
-                       placeholder="Укажите желаемую заработную плату">
+                       pattern="[0-9]" placeholder="Укажите желаемую заработную плату"
+                       th:value="${salaryValue}">
             </div>
             <div class="col-sm-3">
                 <select class="custom-select mr-sm-2" id="currency">
-                    <option selected>руб.</option>
-                    <option value="usd">USD</option>
-                    <option value="euro">EURO</option>
+                    <option value="RUB" th:selected="${salaryCurrency == 'RUB'}">RUB</option>
+                    <option value="USD" th:selected="${salaryCurrency == 'USD'}">USD</option>
+                    <option value="EURO" th:selected="${salaryCurrency == 'EURO'}">EURO</option>
                 </select>
             </div>
         </div>
@@ -153,5 +170,9 @@
 
     <!--Javascript files for this page-->
     <script th:src="@{/js/account-page.js}"></script>
+    <script src='https://maps.google.com/maps/api/js?sensor=false&libraries=places'></script>
+    <script src='https://rawgit.com/Logicify/jquery-locationpicker-plugin/master/dist/locationpicker.jquery.js'></script>
+    <script th:src="@{/js/google-maps.js}"></script>
+
 </body>
 </html>

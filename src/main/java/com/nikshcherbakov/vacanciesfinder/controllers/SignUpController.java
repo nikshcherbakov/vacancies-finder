@@ -1,14 +1,14 @@
 package com.nikshcherbakov.vacanciesfinder.controllers;
 
+import com.nikshcherbakov.vacanciesfinder.models.MailingPreference;
+import com.nikshcherbakov.vacanciesfinder.models.Role;
 import com.nikshcherbakov.vacanciesfinder.models.User;
 import com.nikshcherbakov.vacanciesfinder.repositories.UserRepository;
 import com.nikshcherbakov.vacanciesfinder.services.MailService;
 import com.nikshcherbakov.vacanciesfinder.services.UserService;
+import com.nikshcherbakov.vacanciesfinder.utils.TelegramIsNotDefinedException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.Collections;
 
 @Controller
 public class SignUpController {
@@ -37,7 +38,7 @@ public class SignUpController {
     @GetMapping(value = "/signup")
     public String showSignUp(Model model) {
         // Checking if a user is authenticated already
-        if (isUserAuthenticated()) {
+        if (userService.isUserAuthenticated()) {
             return "redirect:/account";
         }
 
@@ -47,7 +48,9 @@ public class SignUpController {
 
     @PostMapping(value = "/signup")
     public String handleSignUp(@Valid User user, BindingResult bindingResult,
-                               Model model, HttpServletRequest request) {
+                               Model model, HttpServletRequest request)
+            throws TelegramIsNotDefinedException {
+
         // Checking if a form does not contain errors
         if (bindingResult.hasErrors()) {
             return "signup";
@@ -59,6 +62,12 @@ public class SignUpController {
             model.addAttribute("user", user);
             return "signup";
         }
+
+        // Giving a user ROLE_USER by default
+        user.setRoles(Collections.singleton(new Role("ROLE_USER")));
+
+        // By default user gets notifications only by email
+        user.setMailingPreference(new MailingPreference(true, false));
 
         // Getting user credentials
         String username = user.getUsername();
@@ -101,11 +110,6 @@ public class SignUpController {
             return "403";
         }
 
-    }
-
-    private boolean isUserAuthenticated() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication != null && !(authentication instanceof AnonymousAuthenticationToken);
     }
 
 }

@@ -28,6 +28,8 @@ $('form').bind('change keyup', function () {
             disable = (orig[id].value === $(this).val());
         } else if (type === 'radio' || type === 'checkbox') {
             disable = (orig[id].checked === $(this).is(':checked'));
+        } else if (type === 'hidden') {
+            disable = parseFloat(orig[id].value) === parseFloat($(this).val());
         }
 
         if (!disable) {
@@ -36,4 +38,11 @@ $('form').bind('change keyup', function () {
     });
 
     button.prop('disabled', disable);
+});
+
+$('#salary').on("keypress keyup blur", function (event) {
+    $(this).val($(this).val().replace(/[^\d].+/, ""));
+    if ((event.which < 48 || event.which > 57)) {
+        event.preventDefault();
+    }
 });
