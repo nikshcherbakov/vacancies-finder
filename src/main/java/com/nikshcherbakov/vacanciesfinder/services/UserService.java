@@ -62,6 +62,26 @@ public class UserService implements UserDetailsService {
             return false;
         }
 
+        refreshUserData(user);
+
+        // Save user with encoded password
+        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        userRepository.save(user);
+        return true;
+    }
+
+    public boolean refreshUser(User user) throws TelegramIsNotDefinedException {
+        // Checking if a user exists in the database
+        if (userRepository.findByUsername(user.getUsername()) == null) {
+            // User already exists in the database
+            return false;
+        }
+        refreshUserData(user);
+        userRepository.save(user);
+        return true;
+    }
+
+    private void refreshUserData(User user) throws TelegramIsNotDefinedException {
         /* Initializing non-initialized fields by default */
 
         if (user.getRoles() == null) {
@@ -174,11 +194,6 @@ public class UserService implements UserDetailsService {
 
         // Setting user's salary
         user.setSalary(salaryFromDb);
-
-        // Save user with encoded password
-        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
-        return true;
     }
 
     public boolean isUserAuthenticated() {

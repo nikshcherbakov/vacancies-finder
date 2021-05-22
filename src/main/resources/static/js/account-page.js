@@ -28,7 +28,7 @@ $('form').bind('change keyup', function () {
             disable = (orig[id].value === $(this).val());
         } else if (type === 'radio' || type === 'checkbox') {
             disable = (orig[id].checked === $(this).is(':checked'));
-        } else if (type === 'hidden') {
+        } else if (id === 'googleMapsLong' || id === 'googleMapsLat') {
             disable = parseFloat(orig[id].value) === parseFloat($(this).val());
         }
 

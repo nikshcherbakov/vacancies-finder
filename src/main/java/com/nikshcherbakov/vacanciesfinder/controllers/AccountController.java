@@ -1,12 +1,18 @@
 package com.nikshcherbakov.vacanciesfinder.controllers;
 
+import com.nikshcherbakov.vacanciesfinder.models.MailingPreference;
+import com.nikshcherbakov.vacanciesfinder.models.TravelOptions;
 import com.nikshcherbakov.vacanciesfinder.models.User;
 import com.nikshcherbakov.vacanciesfinder.services.UserService;
+import com.nikshcherbakov.vacanciesfinder.utils.TelegramIsNotDefinedException;
+import com.nikshcherbakov.vacanciesfinder.utils.UserAccountForm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
 public class AccountController {
@@ -23,38 +29,34 @@ public class AccountController {
     @GetMapping("/account")
     public String showAccountPage(Model model) {
         User user = userService.retrieveAuthenticatedUser();
-        model.addAttribute("user", user);
-        System.out.println(user);
-        model.addAttribute("useEmail", user.getMailingPreference().isUseEmail());
-        model.addAttribute("useTelegram", user.getMailingPreference().isUseTelegram());
-
-        if (user.getTravelOptions() != null) {
-            model.addAttribute("travelTimeInMins",
-                    user.getTravelOptions().getTravelTimeInMinutes());
-            model.addAttribute("travelBy",
-                    user.getTravelOptions().getTravelBy());
-
-            model.addAttribute("latitude",
-                    user.getTravelOptions().getLocation().getLatitude());
-            model.addAttribute("longitude",
-                    user.getTravelOptions().getLocation().getLongitude());
-        } else {
-            model.addAttribute("latitude", defaultLatitude);
-            model.addAttribute("longitude", defaultLongitude);
-        }
-
-        if (user.getSalary() != null) {
-            model.addAttribute("salaryValue", user.getSalary().getValue());
-            model.addAttribute("salaryCurrency", user.getSalary().getCurrency());
-        }
+        model.addAttribute("userForm", new UserAccountForm(user));
 
         return "account";
     }
 
-    // TODO MAIN_PRIORITY add saving user changes
-//    @PostMapping("/account")
-//    public String handleAccountForm() {
+    @PostMapping("/account")
+    public String handleAccountForm(@ModelAttribute UserAccountForm userForm, Model model)
+            throws TelegramIsNotDefinedException {
+        User user = userService.retrieveAuthenticatedUser();
+
+        // TODO исправить код внизу
+        // Saving changes by user
+//        user.setMailingPreference(new MailingPreference(userForm.isUseEmail(),
+//                userForm.isUseTelegram()));
+//        user.setTelegram(userForm.getTelegram());
 //
-//    }
+//        // Save user's location only if one changed default location or specified travel time
+//        if (user.getTravelOptions() == null) {
+//
+//        } else {
+//            user.setTravelOptions(new TravelOptions());
+//        }
+
+
+        boolean changesSaved = userService.refreshUser(user);
+        model.addAttribute("userForm", userForm);
+        model.addAttribute("savedSuccessfully", changesSaved);
+        return "account";
+    }
 
 }
