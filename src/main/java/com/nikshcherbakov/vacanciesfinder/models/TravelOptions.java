@@ -2,7 +2,7 @@ package com.nikshcherbakov.vacanciesfinder.models;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.util.Set;
+import java.util.Objects;
 
 @Entity
 public class TravelOptions {
@@ -11,7 +11,7 @@ public class TravelOptions {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @NotNull
     private Location location;
 
@@ -19,8 +19,8 @@ public class TravelOptions {
 
     private String travelBy;
 
-    @OneToMany(mappedBy = "travelOptions")
-    private Set<User> users;
+    @OneToOne(mappedBy = "travelOptions")
+    private User user;
 
     public TravelOptions() {
     }
@@ -63,12 +63,24 @@ public class TravelOptions {
         this.travelBy = travelBy;
     }
 
-    public Set<User> getUsers() {
-        return users;
+    public User getUser() {
+        return user;
     }
 
-    public void setUsers(Set<User> users) {
-        this.users = users;
+    public void setUser(User users) {
+        this.user = users;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TravelOptions that = (TravelOptions) o;
+        return Objects.equals(location, that.location) && Objects.equals(travelTimeInMinutes, that.travelTimeInMinutes) && Objects.equals(travelBy, that.travelBy);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(location, travelTimeInMinutes, travelBy);
+    }
 }

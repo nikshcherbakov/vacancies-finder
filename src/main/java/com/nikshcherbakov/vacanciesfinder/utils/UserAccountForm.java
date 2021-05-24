@@ -1,22 +1,13 @@
 package com.nikshcherbakov.vacanciesfinder.utils;
 
-import com.nikshcherbakov.vacanciesfinder.models.User;
-import org.springframework.beans.factory.annotation.Value;
-
 public class UserAccountForm {
-
-    @Value("${app.maps.defaults.latitude}")
-    String defaultLatitude;
-
-    @Value("${app.maps.defaults.longitude}")
-    String defaultLongitude;
 
     private String username;
     private boolean useEmail;
     private String telegram;
     private boolean useTelegram;
-    private float longitude;
-    private float latitude;
+    private double longitude;
+    private double latitude;
     private int travelTimeInMins;
     private String travelBy;
     private Integer salaryValue;
@@ -26,7 +17,7 @@ public class UserAccountForm {
     }
 
     public UserAccountForm(String username, boolean useEmail, String telegram,
-                           boolean useTelegram, float longitude, float latitude,
+                           boolean useTelegram, double longitude, double latitude,
                            int travelTimeInMins, String travelBy, Integer salaryValue,
                            String currency) {
         this.username = username;
@@ -41,33 +32,7 @@ public class UserAccountForm {
         this.currency = currency;
     }
 
-    public UserAccountForm(User user) {
-        this.username = user.getUsername();
-        this.useEmail = user.getMailingPreference().isUseEmail();
-        this.telegram = user.getTelegram();
-        this.useTelegram = user.getMailingPreference().isUseTelegram();
 
-        if (user.getTravelOptions() != null) {
-            this.latitude = user.getTravelOptions().getLocation().getLatitude();
-            this.longitude = user.getTravelOptions().getLocation().getLongitude();
-            this.travelTimeInMins = user.getTravelOptions().getTravelTimeInMinutes();
-            this.travelBy = user.getTravelOptions().getTravelBy();
-
-        } else {
-            this.latitude = Float.parseFloat(defaultLatitude);
-            this.longitude = Float.parseFloat(defaultLongitude);
-            this.travelTimeInMins = 0;
-            this.travelBy = "car";
-        }
-
-        if (user.getSalary() != null) {
-            this.salaryValue = user.getSalary().getValue();
-            this.currency = user.getSalary().getCurrency();
-        } else {
-            this.salaryValue = null;
-            this.currency = null;
-        }
-    }
 
     public String getUsername() {
         return username;
@@ -101,19 +66,19 @@ public class UserAccountForm {
         this.useTelegram = useTelegram;
     }
 
-    public float getLongitude() {
+    public double getLongitude() {
         return longitude;
     }
 
-    public void setLongitude(float longitude) {
+    public void setLongitude(double longitude) {
         this.longitude = longitude;
     }
 
-    public float getLatitude() {
+    public double getLatitude() {
         return latitude;
     }
 
-    public void setLatitude(float latitude) {
+    public void setLatitude(double latitude) {
         this.latitude = latitude;
     }
 
@@ -148,4 +113,5 @@ public class UserAccountForm {
     public void setCurrency(String currency) {
         this.currency = currency;
     }
+
 }

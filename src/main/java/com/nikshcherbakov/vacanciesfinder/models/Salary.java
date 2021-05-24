@@ -1,7 +1,7 @@
 package com.nikshcherbakov.vacanciesfinder.models;
 
 import javax.persistence.*;
-import java.util.Set;
+import java.util.Objects;
 
 @Entity
 public class Salary {
@@ -13,8 +13,8 @@ public class Salary {
     private Integer value;
     private String currency;
 
-    @OneToMany(mappedBy = "salary")
-    private Set<User> users;
+    @OneToOne(mappedBy = "salary")
+    private User user;
 
     public Salary() {
     }
@@ -46,5 +46,26 @@ public class Salary {
 
     public void setCurrency(String currency) {
         this.currency = currency;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Salary salary = (Salary) o;
+        return Objects.equals(value, salary.value) && Objects.equals(currency, salary.currency);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value, currency);
     }
 }

@@ -20,9 +20,9 @@ public class OnlyTestController {
         testUser.setTelegram("some_telegram");
         testUser.setSalary(new Salary(10000, "RUB"));
 
-        Location location = new Location(100.0f, 150.0f);
+        Location location = new Location(30.0f, 40.0f);
         testUser.setTravelOptions(new TravelOptions(
-                location, 15, "public transport"));
+                location, 15, "public_transport"));
 
         userService.saveUser(testUser);
 

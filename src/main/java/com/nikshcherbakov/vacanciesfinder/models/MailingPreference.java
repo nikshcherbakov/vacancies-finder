@@ -1,6 +1,7 @@
 package com.nikshcherbakov.vacanciesfinder.models;
 
 import javax.persistence.*;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -56,4 +57,16 @@ public class MailingPreference {
         this.users = users;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MailingPreference that = (MailingPreference) o;
+        return useEmail == that.useEmail && useTelegram == that.useTelegram;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(useEmail, useTelegram);
+    }
 }

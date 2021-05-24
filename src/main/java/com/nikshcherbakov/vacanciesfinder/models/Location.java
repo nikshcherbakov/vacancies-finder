@@ -1,7 +1,7 @@
 package com.nikshcherbakov.vacanciesfinder.models;
 
 import javax.persistence.*;
-import java.util.Set;
+import java.util.Objects;
 
 @Entity
 public class Location {
@@ -10,33 +10,33 @@ public class Location {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private float longitude;
-    private float latitude;
+    private double latitude;
+    private double longitude;
 
-    @OneToMany(mappedBy = "location")
-    Set<TravelOptions> travelOptions;
+    @OneToOne(mappedBy = "location")
+    TravelOptions travelOptions;
 
     public Location() {
     }
 
-    public Location(float longitude, float latitude) {
-        this.longitude = longitude;
+    public Location(double latitude, double longitude) {
         this.latitude = latitude;
+        this.longitude = longitude;
     }
 
-    public float getLongitude() {
+    public double getLongitude() {
         return longitude;
     }
 
-    public void setLongitude(float longitude) {
+    public void setLongitude(double longitude) {
         this.longitude = longitude;
     }
 
-    public float getLatitude() {
+    public double getLatitude() {
         return latitude;
     }
 
-    public void setLatitude(float latitude) {
+    public void setLatitude(double latitude) {
         this.latitude = latitude;
     }
 
@@ -48,12 +48,24 @@ public class Location {
         this.id = id;
     }
 
-    public Set<TravelOptions> getTravelOptions() {
+    public TravelOptions getTravelOptions() {
         return travelOptions;
     }
 
-    public void setTravelOptions(Set<TravelOptions> travelOptions) {
+    public void setTravelOptions(TravelOptions travelOptions) {
         this.travelOptions = travelOptions;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Location location = (Location) o;
+        return Double.compare(location.latitude, latitude) == 0 && Double.compare(location.longitude, longitude) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(latitude, longitude);
+    }
 }
