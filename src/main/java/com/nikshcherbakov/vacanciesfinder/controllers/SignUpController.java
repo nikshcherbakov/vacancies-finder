@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Collections;
 
@@ -47,8 +46,7 @@ public class SignUpController {
     }
 
     @PostMapping(value = "/signup")
-    public String handleSignUp(@Valid User user, BindingResult bindingResult,
-                               Model model, HttpServletRequest request)
+    public String handleSignUp(@Valid User user, BindingResult bindingResult, Model model)
             throws TelegramIsNotDefinedException {
 
         // Checking if a form does not contain errors
@@ -68,10 +66,6 @@ public class SignUpController {
 
         // By default user gets notifications only by email
         user.setMailingPreference(new MailingPreference(true, false));
-
-        // Getting user credentials
-        String username = user.getUsername();
-        String password = user.getPassword(); // original password is needed because bCrypt is one-way coder
 
         if (!userService.saveUser(user)) {
             // User already exists in the database

@@ -13,9 +13,6 @@ public class UserAccountForm {
     private Integer salaryValue;
     private String currency;
 
-    public UserAccountForm() {
-    }
-
     public UserAccountForm(String username, boolean useEmail, String telegram,
                            boolean useTelegram, double longitude, double latitude,
                            int travelTimeInMins, String travelBy, Integer salaryValue,
@@ -31,8 +28,6 @@ public class UserAccountForm {
         this.salaryValue = salaryValue;
         this.currency = currency;
     }
-
-
 
     public String getUsername() {
         return username;

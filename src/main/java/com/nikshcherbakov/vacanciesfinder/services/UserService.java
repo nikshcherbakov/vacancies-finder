@@ -16,7 +16,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -81,7 +80,8 @@ public class UserService implements UserDetailsService {
         return true;
     }
 
-    public boolean refreshUserDataWithUserAccountForm(UserAccountForm form) throws TelegramIsNotDefinedException {
+    public boolean refreshUserDataWithUserAccountForm(@NotNull UserAccountForm form)
+            throws TelegramIsNotDefinedException {
 
         User userFromDb = userRepository.findByUsername(form.getUsername());
 
@@ -166,6 +166,10 @@ public class UserService implements UserDetailsService {
                 roleFromDb = roleRepository.findByName(roleName);
             }
 
+            if (roleFromDb.getUsers() == null) {
+                roleFromDb.setUsers(new HashSet<>());
+            }
+
             roleFromDb.getUsers().add(user);
             userRolesFromDb.add(roleFromDb);
         }
@@ -208,22 +212,15 @@ public class UserService implements UserDetailsService {
 
         if (mailingPreferenceFromDb == null) {
             // There's no such record in the db - adding one
-            mailingPreferenceRepository.save(userMailingPreference);
-
-            // Retrieving saved object from db
-            mailingPreferenceFromDb =
-                    mailingPreferenceRepository.findMailingPreferenceByUseEmailAndUseTelegram(
-                            userMailingPreference.isUseEmail(), userMailingPreference.isUseTelegram());
-        }
-
-        // User's mailing preferences = object retrieved from db
-        if (mailingPreferenceFromDb.getUsers() == null) {
-            mailingPreferenceFromDb.setUsers(Collections.singleton(user));
+            user.setMailingPreference(userMailingPreference);
         } else {
+            // User's mailing preferences = object retrieved from db
+            if (mailingPreferenceFromDb.getUsers() == null) {
+                mailingPreferenceFromDb.setUsers(new HashSet<>());
+            }
             mailingPreferenceFromDb.getUsers().add(user);
+            user.setMailingPreference(mailingPreferenceFromDb);
         }
-
-        user.setMailingPreference(mailingPreferenceFromDb);
 
     }
 
