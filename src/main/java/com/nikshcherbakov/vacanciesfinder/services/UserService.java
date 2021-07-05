@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 
@@ -96,6 +97,8 @@ public class UserService implements UserDetailsService {
 
         String telegram = form.getTelegram().equals("") ? null : form.getTelegram();
 
+        String searchFilters = form.getSearchFilters().equals("") ? null : form.getSearchFilters();
+
         TravelOptions travelOptions = null;
         if (userFromDb.getTravelOptions() == null) {
             // Save user's location only if one changed default location or specified travel time
@@ -120,6 +123,7 @@ public class UserService implements UserDetailsService {
 
         /* Adding changed fiends to user and deleting records from db that are not used anymore */
         userFromDb.setTelegram(telegram);
+        userFromDb.setSearchFilters(searchFilters);
         userFromDb.setMailingPreference(mailingPreference);
 
         if (userFromDb.getSalary() != null) {
@@ -192,7 +196,6 @@ public class UserService implements UserDetailsService {
 
         if (userSalary != null) {
             /* User specified salary */
-
             userSalary.setUser(user);
             user.setSalary(userSalary);
         }
@@ -222,6 +225,19 @@ public class UserService implements UserDetailsService {
             user.setMailingPreference(mailingPreferenceFromDb);
         }
 
+    }
+
+    public boolean refreshUser(User user) {
+        User userFromDb = userRepository.findByUsername(user.getUsername());
+
+        if (userFromDb == null) {
+            // No such user in the db
+            return false;
+        }
+
+
+
+        return true;
     }
 
     public boolean isUserAuthenticated() {

@@ -22,6 +22,8 @@
             Для telegram рассылки необходимо указать идентификатор telegram
         </p>
 
+        <h1>Личный кабинет</h1>
+
         <!--Email row-->
         <div class="form-group row">
             <label for="username" class="col-sm-2 col-form-label">Логин (e-mail)</label>
@@ -158,6 +160,26 @@
             </div>
         </div>
 
+        <!--Search filters-->
+        <div class="form-group row">
+            <label for="searchFiltersInput" class="col-sm-2 col-form-label">Поисковые фильтры</label>
+            <div class="col-sm-10">
+                <input type="hidden" id="searchFiltersInput" th:field="*{searchFilters}">
+                <table id="searchFiltersTable" class="table">
+                    <tr>
+                        <td>#</td>
+                        <td>Фильтр</td>
+                        <td>Действия</td>
+                    </tr>
+                </table>
+            </div>
+            <label for="addFilter" class="col-sm-2 col-form-label"></label>
+            <div class="col-sm-10">
+                <input type="button" class="btn btn-secondary" id="addFilter" value="Добавить фильтр"
+                       onclick="insRow()" />
+            </div>
+        </div>
+
         <!--Submit button-->
         <button type="submit" class="btn btn-primary" id="submitButton" disabled>
             Сохранить изменения
@@ -171,6 +193,7 @@
     <script src='https://maps.google.com/maps/api/js?sensor=false&libraries=places'></script>
     <script src='https://rawgit.com/Logicify/jquery-locationpicker-plugin/master/dist/locationpicker.jquery.js'></script>
     <script th:src="@{/js/google-maps.js}"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 
 </body>
 </html>

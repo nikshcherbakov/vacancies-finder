@@ -12,9 +12,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
+
 // TODO GLOBAL подумать о добавлении частоты рассылки и, возможно, других параметров
 @Controller
 public class AccountController {
+
+    @Value("${app.searchfilters.delimiter}")
+    private String searchFiltersDelimiter;
 
     @Value("${app.maps.defaults.latitude}")
     private double defaultLatitude;
@@ -41,7 +45,8 @@ public class AccountController {
                 user.getTravelOptions() == null ? 0 : user.getTravelOptions().getTravelTimeInMinutes(),
                 user.getTravelOptions() == null ? "car" : user.getTravelOptions().getTravelBy(),
                 user.getSalary() == null ? null : user.getSalary().getValue(),
-                user.getSalary() == null ? "RUB" : user.getSalary().getCurrency()
+                user.getSalary() == null ? "RUB" : user.getSalary().getCurrency(),
+                user.getSearchFilters()
         );
 
         model.addAttribute("userForm", userAccountForm);

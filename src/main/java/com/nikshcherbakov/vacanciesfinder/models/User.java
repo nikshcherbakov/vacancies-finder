@@ -7,6 +7,8 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 // TODO Разбраться как работает BCryptEncoder, установить корректный максимальный размер для пароля
@@ -48,6 +50,17 @@ public class User implements UserDetails {
 
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private Salary salary;
+
+    private String searchFilters;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date lastJobRequestDate;
+
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<VacancyPreview> vacancies;
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<VacancyPreview> favoriteVacancies;
 
     public User() {
     }
@@ -169,4 +182,35 @@ public class User implements UserDetails {
         this.salary = salary;
     }
 
+    public String getSearchFilters() {
+        return searchFilters;
+    }
+
+    public void setSearchFilters(String searchFilters) {
+        this.searchFilters = searchFilters;
+    }
+
+    public Date getLastJobRequestDate() {
+        return lastJobRequestDate;
+    }
+
+    public void setLastJobRequestDate(Date lastJobRequestDate) {
+        this.lastJobRequestDate = lastJobRequestDate;
+    }
+
+    public List<VacancyPreview> getVacancies() {
+        return vacancies;
+    }
+
+    public void setVacancies(List<VacancyPreview> vacancies) {
+        this.vacancies = vacancies;
+    }
+
+    public List<VacancyPreview> getFavoriteVacancies() {
+        return favoriteVacancies;
+    }
+
+    public void setFavoriteVacancies(List<VacancyPreview> favoriteVacancies) {
+        this.favoriteVacancies = favoriteVacancies;
+    }
 }

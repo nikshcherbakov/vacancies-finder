@@ -1,7 +1,6 @@
 package com.nikshcherbakov.vacanciesfinder.models;
 
 import javax.persistence.*;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -16,7 +15,7 @@ public class MailingPreference {
     private boolean useTelegram;
 
     @OneToMany(mappedBy = "mailingPreference")
-    private Set<User> users = new HashSet<>();
+    private Set<User> users;
 
     public MailingPreference() {
     }

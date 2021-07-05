@@ -1,5 +1,7 @@
 package com.nikshcherbakov.vacanciesfinder.utils;
 
+import java.util.List;
+
 public class UserAccountForm {
 
     private String username;
@@ -12,11 +14,12 @@ public class UserAccountForm {
     private String travelBy;
     private Integer salaryValue;
     private String currency;
+    private String searchFilters;
 
     public UserAccountForm(String username, boolean useEmail, String telegram,
                            boolean useTelegram, double longitude, double latitude,
                            int travelTimeInMins, String travelBy, Integer salaryValue,
-                           String currency) {
+                           String currency, String searchFilters) {
         this.username = username;
         this.useEmail = useEmail;
         this.telegram = telegram;
@@ -27,6 +30,7 @@ public class UserAccountForm {
         this.travelBy = travelBy;
         this.salaryValue = salaryValue;
         this.currency = currency;
+        this.searchFilters = searchFilters;
     }
 
     public String getUsername() {
@@ -109,4 +113,15 @@ public class UserAccountForm {
         this.currency = currency;
     }
 
+    public void setTravelTimeInMins(int travelTimeInMins) {
+        this.travelTimeInMins = travelTimeInMins;
+    }
+
+    public String getSearchFilters() {
+        return searchFilters;
+    }
+
+    public void setSearchFilters(String searchFilters) {
+        this.searchFilters = searchFilters;
+    }
 }
