@@ -1,25 +1,6 @@
 .container {
   max-width: 960px;
 }
-
-/*
- * Custom translucent site header
- */
-
-.site-header {
-  background-color: rgba(0, 0, 0, .85);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-  backdrop-filter: saturate(180%) blur(20px);
-}
-.site-header a {
-  color: #999;
-  transition: ease-in-out color .15s;
-}
-.site-header a:hover {
-  color: #fff;
-  text-decoration: none;
-}
-
 /*
  * Dummy devices (replace them with your own or something else entirely!)
  */
@@ -116,4 +97,88 @@ p.info-regular {
 
 .account-form-default-bottom-padding {
   padding-bottom: 1.7rem;
+}
+
+/* Header styles */
+nav {
+  width: 100%;
+  background: rgba(0, 0, 0, .85);
+}
+
+nav a {
+  display: block;
+  padding: 10px 15px;
+  text-decoration: none;
+  outline: none;
+  transition: .5s linear;
+}
+
+nav ul {
+  list-style: none;
+  padding: 0;
+  max-width: 960px;
+  text-align: center;
+  display: block;
+  margin: auto;
+}
+.header-items > li {
+  display: inline-block;
+  position: relative;
+  margin: 0 50px 0 0;
+}
+.header-items > li:last-child {
+  margin-right: 0;
+}
+
+.header .header-item-submenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  z-index: 10;
+  -webkit-transition: 0.5s ease-in-out;
+  -moz-transition: 0.5s ease-in-out;
+  -o-transition: 0.5s ease-in-out;
+  transition: 0.5s ease-in-out;
+
+  -webkit-transform: scaleY(0);
+  -ms-transform: scaleY(0);
+  transform: scaleY(0);
+  -webkit-transform-origin: 0 0;
+  -ms-transform-origin: 0 0;
+  transform-origin: 0 0;
+  background: rgba(0, 0, 0, .85);
+}
+
+.header ul li:hover .header-item-submenu {
+  -webkit-transform: scaleY(1);
+  -ms-transform: scaleY(1);
+  transform: scaleY(1);
+}
+.header ul a {
+  color: #999;
+  transition: ease-in-out color .15s;
+  text-decoration: none;
+}
+
+.header ul a:hover {
+  color: #fff;
+}
+
+.header-item-submenu li a {
+  color: #999;
+  width: 50%;
+  text-align: left;
+}
+
+.header-item-submenu li a:hover {
+  color: #fff;
+}
+
+a.disabled {
+  pointer-events: none;
+}
+
+svg.navbar-logo {
+  margin-top: -8px;
 }
