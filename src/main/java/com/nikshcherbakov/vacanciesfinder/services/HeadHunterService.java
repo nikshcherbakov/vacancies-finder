@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.nikshcherbakov.vacanciesfinder.models.*;
 import com.nikshcherbakov.vacanciesfinder.utils.*;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +32,11 @@ public class HeadHunterService implements IJobSearchService {
     @Value("${app.searchvacancies.defaults.maxvacanciesperrequest}")
     private Integer maxVacanciesPerRequest;
 
-    private GoogleMapsService googleMapsService;
+    private final GoogleMapsService googleMapsService;
+
+    public HeadHunterService(GoogleMapsService googleMapsService) {
+        this.googleMapsService = googleMapsService;
+    }
 
     /**
      * The method to search vacancies by a user using russian job search platform
@@ -308,8 +311,4 @@ public class HeadHunterService implements IJobSearchService {
         return JSON.parseObject(json, HeadHunterJobsRequest.class);
     }
 
-    @Autowired
-    public void setGoogleMapsService(GoogleMapsService googleMapsService) {
-        this.googleMapsService = googleMapsService;
-    }
 }

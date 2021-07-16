@@ -23,7 +23,11 @@ public class AccountController {
     @Value("${app.maps.defaults.longitude}")
     private double defaultLongitude;
 
-    UserService userService;
+    private final UserService userService;
+
+    public AccountController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping("/account")
     public String showAccountPage(Model model) {
@@ -66,8 +70,4 @@ public class AccountController {
 
     }
 
-    @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
 }

@@ -15,15 +15,16 @@ import javax.sql.DataSource;
 @Configuration
 public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    private DataSource dataSource;
+    private final DataSource dataSource;
 
-    private UserService userService;
+    private final UserService userService;
 
-    @Bean
-    public BCryptPasswordEncoder bCryptPasswordEncoderBean() {
-        return new BCryptPasswordEncoder();
+    public SpringSecurityConfig(BCryptPasswordEncoder bCryptPasswordEncoder, DataSource dataSource, UserService userService) {
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.dataSource = dataSource;
+        this.userService = userService;
     }
 
     @Bean
@@ -66,18 +67,4 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
 
     }
 
-    @Autowired
-    public void setBCryptPasswordEncoder(BCryptPasswordEncoder bCryptPasswordEncoder) {
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-    }
-
-    @Autowired
-    public void setDataSource(DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
-
-    @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
 }

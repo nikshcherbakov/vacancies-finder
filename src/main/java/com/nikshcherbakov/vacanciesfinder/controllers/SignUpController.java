@@ -20,11 +20,17 @@ import java.util.Collections;
 @Controller
 public class SignUpController {
 
-    private UserService userService;
+    private final UserService userService;
 
-    private MailService mailService;
+    private final MailService mailService;
 
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+
+    public SignUpController(UserService userService, MailService mailService, UserRepository userRepository) {
+        this.userService = userService;
+        this.mailService = mailService;
+        this.userRepository = userRepository;
+    }
 
     @GetMapping(value = "/signup")
     public String showSignUp(Model model) {
@@ -98,18 +104,4 @@ public class SignUpController {
 
     }
 
-    @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
-
-    @Autowired
-    public void setMailService(MailService mailService) {
-        this.mailService = mailService;
-    }
-
-    @Autowired
-    public void setUserRepository(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 }

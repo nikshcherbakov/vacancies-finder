@@ -29,13 +29,21 @@ public class UserService implements UserDetailsService {
     @Value("${app.maps.defaults.longitude}")
     private double defaultLongitude;
 
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    private RoleRepository roleRepository;
+    private final RoleRepository roleRepository;
 
-    private MailingPreferenceRepository mailingPreferenceRepository;
+    private final MailingPreferenceRepository mailingPreferenceRepository;
+
+    public UserService(BCryptPasswordEncoder bCryptPasswordEncoder, UserRepository userRepository,
+                       RoleRepository roleRepository, MailingPreferenceRepository mailingPreferenceRepository) {
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.mailingPreferenceRepository = mailingPreferenceRepository;
+    }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -237,23 +245,4 @@ public class UserService implements UserDetailsService {
         }
     }
 
-    @Autowired
-    public void setBCryptPasswordEncoder(BCryptPasswordEncoder bCryptPasswordEncoder) {
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-    }
-
-    @Autowired
-    public void setUserRepository(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-
-    @Autowired
-    public void setRoleRepository(RoleRepository roleRepository) {
-        this.roleRepository = roleRepository;
-    }
-
-    @Autowired
-    public void setMailingPreferenceRepository(MailingPreferenceRepository mailingPreferenceRepository) {
-        this.mailingPreferenceRepository = mailingPreferenceRepository;
-    }
 }
