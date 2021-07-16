@@ -33,7 +33,6 @@ public class HeadHunterService implements IJobSearchService {
     @Value("${app.searchvacancies.defaults.maxvacanciesperrequest}")
     private Integer maxVacanciesPerRequest;
 
-    @Autowired
     private GoogleMapsService googleMapsService;
 
     /**
@@ -94,7 +93,7 @@ public class HeadHunterService implements IJobSearchService {
      * @return list of vacancy previews that were found for a user by user constraints
      * @throws IOException in case there occurred a problem while getting stream of bytes from api.hh.ru
      * @throws GoogleMapsInvalidApiKeyException if a GoogleMapsAPI key defined in
-     * {@code application.properties} is not valid.
+     * {@code application.properties} is not valid or does not allow to obtain information via api.
      */
     public List<VacancyPreview> searchVacanciesByUserSinceDate(User user, Date date)
             throws IOException, GoogleMapsInvalidApiKeyException {
@@ -281,8 +280,9 @@ public class HeadHunterService implements IJobSearchService {
     }
 
     /** Method sets up the basic url params (salary, search filters and date to start search with) without location **/
-    public static Map<String, String> setupBasicUrlParamsByUserAndDate(User user, Date date) {
+    public Map<String, String> setupBasicUrlParamsByUserAndDate(User user, Date date) {
         Map<String, String> params = new HashMap<>();
+        params.put("per_page", String.valueOf(perPage));
         params.put("date_from", convertDateToISO8601(date));
         if (user.getSearchFilters() != null) {
             params.put("text", user.getSearchFilters().replace(';', ' '));
@@ -308,4 +308,8 @@ public class HeadHunterService implements IJobSearchService {
         return JSON.parseObject(json, HeadHunterJobsRequest.class);
     }
 
+    @Autowired
+    public void setGoogleMapsService(GoogleMapsService googleMapsService) {
+        this.googleMapsService = googleMapsService;
+    }
 }

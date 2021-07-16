@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 
@@ -30,16 +29,12 @@ public class UserService implements UserDetailsService {
     @Value("${app.maps.defaults.longitude}")
     private double defaultLongitude;
 
-    @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    @Autowired
     private UserRepository userRepository;
 
-    @Autowired
     private RoleRepository roleRepository;
 
-    @Autowired
     private MailingPreferenceRepository mailingPreferenceRepository;
 
     @Override
@@ -227,19 +222,6 @@ public class UserService implements UserDetailsService {
 
     }
 
-    public boolean refreshUser(User user) {
-        User userFromDb = userRepository.findByUsername(user.getUsername());
-
-        if (userFromDb == null) {
-            // No such user in the db
-            return false;
-        }
-
-
-
-        return true;
-    }
-
     public boolean isUserAuthenticated() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return authentication != null && !(authentication instanceof AnonymousAuthenticationToken);
@@ -253,5 +235,25 @@ public class UserService implements UserDetailsService {
             // User is not authenticated
             return null;
         }
+    }
+
+    @Autowired
+    public void setBCryptPasswordEncoder(BCryptPasswordEncoder bCryptPasswordEncoder) {
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+    }
+
+    @Autowired
+    public void setUserRepository(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    @Autowired
+    public void setRoleRepository(RoleRepository roleRepository) {
+        this.roleRepository = roleRepository;
+    }
+
+    @Autowired
+    public void setMailingPreferenceRepository(MailingPreferenceRepository mailingPreferenceRepository) {
+        this.mailingPreferenceRepository = mailingPreferenceRepository;
     }
 }

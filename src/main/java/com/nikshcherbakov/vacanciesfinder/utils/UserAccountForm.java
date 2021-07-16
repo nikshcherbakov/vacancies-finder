@@ -1,7 +1,5 @@
 package com.nikshcherbakov.vacanciesfinder.utils;
 
-import java.util.List;
-
 public class UserAccountForm {
 
     private String username;

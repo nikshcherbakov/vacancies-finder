@@ -17,16 +17,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 @Controller
 public class AccountController {
 
-    @Value("${app.searchfilters.delimiter}")
-    private String searchFiltersDelimiter;
-
     @Value("${app.maps.defaults.latitude}")
     private double defaultLatitude;
 
     @Value("${app.maps.defaults.longitude}")
     private double defaultLongitude;
 
-    @Autowired
     UserService userService;
 
     @GetMapping("/account")
@@ -70,4 +66,8 @@ public class AccountController {
 
     }
 
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
 }

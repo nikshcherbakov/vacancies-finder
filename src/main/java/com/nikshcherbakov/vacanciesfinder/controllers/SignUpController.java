@@ -8,31 +8,23 @@ import com.nikshcherbakov.vacanciesfinder.services.MailService;
 import com.nikshcherbakov.vacanciesfinder.services.UserService;
 import com.nikshcherbakov.vacanciesfinder.utils.TelegramIsNotDefinedException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-
 import javax.validation.Valid;
 import java.util.Collections;
 
 @Controller
 public class SignUpController {
 
-    @Autowired
-    UserService userService;
+    private UserService userService;
 
-    @Autowired
-    MailService mailService;
+    private MailService mailService;
 
-    @Autowired
-    AuthenticationManager authenticationManager;
-
-    @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
     @GetMapping(value = "/signup")
     public String showSignUp(Model model) {
@@ -106,4 +98,18 @@ public class SignUpController {
 
     }
 
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
+    @Autowired
+    public void setMailService(MailService mailService) {
+        this.mailService = mailService;
+    }
+
+    @Autowired
+    public void setUserRepository(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 }
