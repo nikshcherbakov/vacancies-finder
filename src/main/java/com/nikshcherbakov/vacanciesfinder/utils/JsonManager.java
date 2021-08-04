@@ -8,6 +8,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
 
+// TODO DELETE AFTER IF NOT NEEDED
 public class JsonManager {
 
     public static String getJsonByUrl(@NotNull String basicUrl, @Nullable Map<String, String> params)

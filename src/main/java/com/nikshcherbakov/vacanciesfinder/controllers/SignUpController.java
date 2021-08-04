@@ -7,7 +7,6 @@ import com.nikshcherbakov.vacanciesfinder.repositories.UserRepository;
 import com.nikshcherbakov.vacanciesfinder.services.MailService;
 import com.nikshcherbakov.vacanciesfinder.services.UserService;
 import com.nikshcherbakov.vacanciesfinder.utils.TelegramIsNotDefinedException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -65,7 +64,7 @@ public class SignUpController {
         // By default user gets notifications only by email
         user.setMailingPreference(new MailingPreference(true, false));
 
-        if (!userService.saveUser(user)) {
+        if (!userService.saveNewUser(user)) {
             // User already exists in the database
             model.addAttribute("userExists", true);
             model.addAttribute("user", user);

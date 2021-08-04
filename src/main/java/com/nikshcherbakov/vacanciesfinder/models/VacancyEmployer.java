@@ -4,6 +4,8 @@ import com.sun.istack.NotNull;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import java.util.Set;
 
 @Entity
 public class VacancyEmployer {
@@ -13,6 +15,9 @@ public class VacancyEmployer {
 
     @NotNull
     private String name;
+
+    @OneToMany(mappedBy = "vacancyEmployer", orphanRemoval = true)
+    private Set<VacancyPreview> vacancyPreviews;
 
     public VacancyEmployer(Long id, String name) {
         this.id = id;
@@ -38,4 +43,11 @@ public class VacancyEmployer {
         this.name = name;
     }
 
+    public Set<VacancyPreview> getVacancyPreviews() {
+        return vacancyPreviews;
+    }
+
+    public void setVacancyPreviews(Set<VacancyPreview> vacancyPreviews) {
+        this.vacancyPreviews = vacancyPreviews;
+    }
 }

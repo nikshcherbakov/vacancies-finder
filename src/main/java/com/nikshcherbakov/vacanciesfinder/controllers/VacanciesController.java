@@ -9,12 +9,11 @@ public class VacanciesController {
 
     @GetMapping("/vacancies")
     public String showVacanciesPage(Model model) {
-        // TODO MAIN_PRIORITY 1. Продумать регулярный подбор вакансий с помощью сервиса HeadHunterService
-        // TODO MAIN_PRIORITY 2. Продумать отображение вакансий в виде таблицы
-        // TODO MAIN_PRIORITY 3. Реазизовать getmapping на /vacancies и отображение найденных вакансий
+        // TODO MAIN_PRIORITY 1. Продумать отображение вакансий в виде таблицы
+        // TODO MAIN_PRIORITY 2. Реазизовать getmapping на /vacancies и отображение найденных вакансий
         return "vacancies";
     }
 
-    // TODO MAIN_PRIORITY 4. Реализовать getmapping на /vacancies/favorites
+    // TODO MAIN_PRIORITY 3. Реализовать getmapping на /vacancies/favorites
 
 }

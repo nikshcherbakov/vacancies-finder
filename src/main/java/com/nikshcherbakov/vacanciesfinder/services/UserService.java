@@ -1,10 +1,14 @@
 package com.nikshcherbakov.vacanciesfinder.services;
 
+import com.nikshcherbakov.vacanciesfinder.VacanciesFinderApplication;
 import com.nikshcherbakov.vacanciesfinder.models.*;
 import com.nikshcherbakov.vacanciesfinder.repositories.*;
+import com.nikshcherbakov.vacanciesfinder.routines.ScheduledVacanciesSearch;
 import com.nikshcherbakov.vacanciesfinder.utils.TelegramIsNotDefinedException;
 import com.nikshcherbakov.vacanciesfinder.utils.UserAccountForm;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.nikshcherbakov.vacanciesfinder.utils.UserNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -16,8 +20,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 
 @Service
@@ -29,20 +32,28 @@ public class UserService implements UserDetailsService {
     @Value("${app.maps.defaults.longitude}")
     private double defaultLongitude;
 
+    private static final Logger logger = LoggerFactory.getLogger(VacanciesFinderApplication.class);
+
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     private final UserRepository userRepository;
-
     private final RoleRepository roleRepository;
-
     private final MailingPreferenceRepository mailingPreferenceRepository;
+    private final AddressRepository addressRepository;
+    private final VacancyEmployerRepository employerRepository;
+    private final VacancyPreviewRepository vacancyRepository;
 
     public UserService(BCryptPasswordEncoder bCryptPasswordEncoder, UserRepository userRepository,
-                       RoleRepository roleRepository, MailingPreferenceRepository mailingPreferenceRepository) {
+                       RoleRepository roleRepository, MailingPreferenceRepository mailingPreferenceRepository,
+                       AddressRepository addressRepository, VacancyEmployerRepository employerRepository,
+                       VacancyPreviewRepository vacancyRepository) {
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.mailingPreferenceRepository = mailingPreferenceRepository;
+        this.addressRepository = addressRepository;
+        this.employerRepository = employerRepository;
+        this.vacancyRepository = vacancyRepository;
     }
 
     @Override
@@ -58,7 +69,10 @@ public class UserService implements UserDetailsService {
         }
     }
 
-    public boolean saveUser(@NotNull User user) throws TelegramIsNotDefinedException {
+    /**
+     * Method to save new user that is not in the database yet
+     */
+    public boolean saveNewUser(@NotNull User user) throws TelegramIsNotDefinedException {
 
         // Checking if a user exists in the database
         if (userRepository.findByUsername(user.getUsername()) != null) {
@@ -84,6 +98,7 @@ public class UserService implements UserDetailsService {
         return true;
     }
 
+    // TODO GENERAL подумать над тем, чтобы сделать метод transactional
     public boolean refreshUserDataWithUserAccountForm(@NotNull UserAccountForm form)
             throws TelegramIsNotDefinedException {
 
@@ -124,7 +139,7 @@ public class UserService implements UserDetailsService {
             salary = new Salary(form.getSalaryValue(), form.getCurrency());
         }
 
-        /* Adding changed fiends to user and deleting records from db that are not used anymore */
+        /* Adding changed fields to a user */
         userFromDb.setTelegram(telegram);
         userFromDb.setSearchFilters(searchFilters);
         userFromDb.setMailingPreference(mailingPreference);
@@ -155,6 +170,7 @@ public class UserService implements UserDetailsService {
         return true;
     }
 
+    // TODO GENERAL Исправить связку объектов в соответствии с методом addFoundVacancies
     private void bindUserDataToRecordsFromDb(@NotNull User user) throws TelegramIsNotDefinedException {
         /* Adding corresponding records from db to the user */
 
@@ -189,7 +205,6 @@ public class UserService implements UserDetailsService {
 
         if (userTravelOptions != null) {
             /* User specified travel options */
-
             userTravelOptions.setUser(user);
             user.setTravelOptions(userTravelOptions);
         }
@@ -243,6 +258,87 @@ public class UserService implements UserDetailsService {
             // User is not authenticated
             return null;
         }
+    }
+
+    public List<User> getAllActiveUsers() {
+        List<User> users = userRepository.findAll();
+        List<User> activeUsers = new ArrayList<>();
+        for (User user : users) {
+            if (user.isEnabled()) {
+                activeUsers.add(user);
+            }
+        }
+        return activeUsers;
+    }
+
+    public void refreshUser(User user) throws UserNotFoundException {
+        if (userRepository.findByUsername(user.getUsername()) == null) {
+            // No such user in the database
+            throw new UserNotFoundException();
+        }
+        userRepository.save(user);
+    }
+
+    // TODO GENERAL Подумать над тем, чтобы сделать метод transactional
+    /**
+     * Adds new found vacancies to user and saves the database. If a user does
+     * not exist in the database the method will log out a corresponding message
+     * @param userVacanciesMap a map where list of new found vacancies
+     *                         is associated with corresponding user
+     */
+    public void addFoundVacanciesAndSave(Map<User, List<VacancyPreview>> userVacanciesMap) {
+        for (Map.Entry<User, List<VacancyPreview>> entry : userVacanciesMap.entrySet()) {
+            // Taking out each entry
+            User user = entry.getKey();
+            List<VacancyPreview> vacancies = entry.getValue();
+
+            // Checking if user exists in the database
+            String username = user.getUsername();
+            if (userRepository.findByUsername(username) == null) {
+                // No such user in the database
+                logger.info(String.format("Attempt to save vacancy to a non-existing user %s is registered", username));
+            }
+
+            for (VacancyPreview vacancy : vacancies) {
+                /* Checking if a vacancy is already in the user's list of vacancies */
+                Optional<VacancyPreview> vacancyFromDb = vacancyRepository.findById(vacancy.getId());
+                if (vacancyFromDb.isPresent()) {
+                    /* Vacancy exists already */
+                    VacancyPreview existingVacancyFromDb = vacancyFromDb.get();
+                    if (!existingVacancyFromDb.getUsers().contains(user)) {
+                        // User does not have this vacancy (needed if a vacancy is published not for the first time)
+                        existingVacancyFromDb.addUser(user);
+                        user.addVacancy(existingVacancyFromDb);
+                    }
+                } else {
+                    /* Adding new vacancy to the database */
+
+                    // Checking addresses
+                    if (vacancy.getAddress() != null) {
+                        Address vacancyAddress = vacancy.getAddress();
+                        Optional<Address> addressFromDb = addressRepository.findById(vacancyAddress.getId());
+                        addressFromDb.ifPresentOrElse(vacancy::setAddress, () -> {
+                            Address savedAddress = addressRepository.save(vacancyAddress);
+                            vacancy.setAddress(savedAddress);
+                        });
+                    }
+
+                    // Checking employers
+                    if (vacancy.getEmployer() != null) {
+                        VacancyEmployer vacancyEmployer = vacancy.getEmployer();
+                        Optional<VacancyEmployer> employerFromDb = employerRepository.findById(vacancyEmployer.getId());
+                        employerFromDb.ifPresentOrElse(vacancy::setEmployer, () -> {
+                            VacancyEmployer savedEmployer = employerRepository.save(vacancyEmployer);
+                            vacancy.setEmployer(savedEmployer);
+                        });
+                    }
+                    vacancy.addUser(user);
+                    user.addVacancy(vacancy);
+                }
+            }
+        }
+
+        userRepository.saveAll(userVacanciesMap.keySet());
     }
 
 }

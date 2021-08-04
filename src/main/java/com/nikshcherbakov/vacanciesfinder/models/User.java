@@ -6,10 +6,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 // TODO Разбраться как работает BCryptEncoder, установить корректный максимальный размер для пароля
 
@@ -56,10 +53,10 @@ public class User implements UserDetails {
     @Temporal(TemporalType.TIMESTAMP)
     private Date lastJobRequestDate;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<VacancyPreview> vacancies;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<VacancyPreview> favoriteVacancies;
 
     public User() {
@@ -206,11 +203,61 @@ public class User implements UserDetails {
         this.vacancies = vacancies;
     }
 
+    public void addVacancy(VacancyPreview vacancy) {
+        if (vacancies == null) {
+            vacancies = new ArrayList<>();
+        }
+        vacancies.add(vacancy);
+    }
+
+    public void addVacancies(Collection<VacancyPreview> vacancies) {
+        if (vacancies == null) {
+            return;
+        }
+        if (this.vacancies == null) {
+            this.vacancies = new ArrayList<>();
+        }
+        this.vacancies.addAll(vacancies);
+    }
+
     public List<VacancyPreview> getFavoriteVacancies() {
         return favoriteVacancies;
     }
 
     public void setFavoriteVacancies(List<VacancyPreview> favoriteVacancies) {
         this.favoriteVacancies = favoriteVacancies;
+    }
+
+    public void addFavoriteVacancy(VacancyPreview vacancy) {
+        if (vacancy == null) {
+            return;
+        }
+        if (favoriteVacancies == null) {
+            favoriteVacancies = new ArrayList<>();
+        }
+        favoriteVacancies.add(vacancy);
+    }
+
+    public void addFavoriteVacancies(Collection<VacancyPreview> vacancies) {
+        if (vacancies == null) {
+            return;
+        }
+        if (favoriteVacancies == null) {
+            favoriteVacancies = new ArrayList<>();
+        }
+        favoriteVacancies.addAll(vacancies);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return id.equals(user.id) && username.equals(user.username);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, username);
     }
 }

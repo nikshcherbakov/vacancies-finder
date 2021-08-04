@@ -1,20 +1,26 @@
 package com.nikshcherbakov.vacanciesfinder.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sun.istack.NotNull;
+import org.hibernate.annotations.Type;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
 public class VacancySnippet {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotNull
+    @Type(type = "text")
+    @JsonProperty("requirement")
     private String requirement;
 
     @NotNull
+    @Type(type = "text")
+    @JsonProperty("responsibility")
     private String responsibility;
 
     public VacancySnippet(String requirement, String responsibility) {

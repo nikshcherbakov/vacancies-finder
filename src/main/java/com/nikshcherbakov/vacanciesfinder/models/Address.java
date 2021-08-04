@@ -4,6 +4,7 @@ import com.sun.istack.Nullable;
 
 import javax.persistence.*;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 public class Address {
@@ -84,6 +85,9 @@ public class Address {
     @ManyToMany(cascade = CascadeType.ALL)
     @Nullable
     private List<MetroStation> metroStations;
+
+    @OneToMany(mappedBy = "address", orphanRemoval = true)
+    private Set<VacancyPreview> vacancyPreviews; // TODO GENERAL сделать добавление адресу vacancy previews
 
     public Address() {
         this.location = new Location();
@@ -169,5 +173,13 @@ public class Address {
     public void setLng(Double lng) {
         this.lng = lng;
         this.location.setLongitude(lng);
+    }
+
+    public Set<VacancyPreview> getVacancyPreviews() {
+        return vacancyPreviews;
+    }
+
+    public void setVacancyPreviews(Set<VacancyPreview> vacancyPreviews) {
+        this.vacancyPreviews = vacancyPreviews;
     }
 }

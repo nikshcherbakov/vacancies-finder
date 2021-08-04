@@ -1,5 +1,6 @@
 package com.nikshcherbakov.vacanciesfinder.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sun.istack.Nullable;
 
 import javax.persistence.*;
@@ -12,15 +13,19 @@ public class MetroStation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @JsonProperty("station_id")
     private String stationId;
 
     @NotNull
+    @JsonProperty("station_name")
     private String stationName;
 
     @NotNull
+    @JsonProperty("line_id")
     private Integer lineId;
 
     @NotNull
+    @JsonProperty("line_name")
     private String lineName;
 
     @Transient
@@ -36,7 +41,19 @@ public class MetroStation {
     private Location stationLocation;
 
     public MetroStation() {
-        stationLocation = new Location();
+        this.stationLocation = new Location();
+    }
+
+    public MetroStation(Integer id, String stationId, @NotNull String stationName, @NotNull Integer lineId,
+                        @NotNull String lineName, Double lat, Double lng) {
+        this.id = id;
+        this.stationId = stationId;
+        this.stationName = stationName;
+        this.lineId = lineId;
+        this.lineName = lineName;
+        this.lat = lat;
+        this.lng = lng;
+        this.stationLocation = new Location();
     }
 
     public Integer getId() {

@@ -1,11 +1,13 @@
 package com.nikshcherbakov.vacanciesfinder.services;
 
-import com.alibaba.fastjson.JSON;
 import com.nikshcherbakov.vacanciesfinder.models.*;
 import com.nikshcherbakov.vacanciesfinder.utils.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.AsyncRestTemplate;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
@@ -34,8 +36,11 @@ public class HeadHunterService implements IJobSearchService {
 
     private final GoogleMapsService googleMapsService;
 
-    public HeadHunterService(GoogleMapsService googleMapsService) {
+    private final RestTemplate restTemplate;
+
+    public HeadHunterService(GoogleMapsService googleMapsService, RestTemplateBuilder restTemplateBuilder) {
         this.googleMapsService = googleMapsService;
+        this.restTemplate = restTemplateBuilder.build();
     }
 
     /**
@@ -223,7 +228,7 @@ public class HeadHunterService implements IJobSearchService {
     }
 
     private List<VacancyPreview> requestVacanciesFromHH(Map<String, String> params)
-            throws IOException, HTTPEmptyGetParameterException {
+            throws HTTPEmptyGetParameterException {
         // Uploading all vacancies by user filters from hh.ru
         JobsRequest newJobsRequest = requestVacanciesByUrlParams(params);
         List<VacancyPreview> appropriateVacancies = new ArrayList<>(newJobsRequest.getItems());
@@ -301,14 +306,23 @@ public class HeadHunterService implements IJobSearchService {
 
     @Override
     public JobsRequest requestVacanciesByUrlParams(Map<String, String> params)
-            throws IOException, HTTPEmptyGetParameterException {
+            throws HTTPEmptyGetParameterException {
         return sendJobsRequest(params);
     }
 
     private HeadHunterJobsRequest sendJobsRequest(Map<String, String> params)
-            throws IOException, HTTPEmptyGetParameterException {
-        String json = JsonManager.getJsonByUrl(vacanciesUrl, params);
-        return JSON.parseObject(json, HeadHunterJobsRequest.class);
+            throws HTTPEmptyGetParameterException {
+        // TODO DELETE BELOW AFTER
+//        String json = JsonManager.getJsonByUrl(vacanciesUrl, params);
+//        return JSON.parseObject(json, HeadHunterJobsRequest.class);
+        String url;
+        if (params != null) {
+            String paramsUrl = HTTPParameterStringBuilder.getParamsString(params);
+            url = vacanciesUrl + paramsUrl;
+        } else {
+            url = vacanciesUrl;
+        }
+        return restTemplate.getForObject(url, HeadHunterJobsRequest.class);
     }
 
 }

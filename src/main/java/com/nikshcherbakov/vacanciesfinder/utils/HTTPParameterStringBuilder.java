@@ -17,9 +17,9 @@ public class HTTPParameterStringBuilder {
             if (entryKey == null || entryValue == null) throw new HTTPEmptyGetParameterException();
             if (entryKey.isEmpty() || entryValue.isEmpty()) throw new HTTPEmptyGetParameterException();
 
-            result.append(URLEncoder.encode(entryKey, StandardCharsets.UTF_8));
+            result.append(entryKey);
             result.append("=");
-            result.append(URLEncoder.encode(entryValue, StandardCharsets.UTF_8));
+            result.append(entryValue);
             result.append("&");
         }
 

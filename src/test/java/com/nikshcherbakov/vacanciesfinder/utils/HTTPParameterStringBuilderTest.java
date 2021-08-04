@@ -15,9 +15,8 @@ class HTTPParameterStringBuilderTest {
         params1.put("параметр1", "значение1");
         params1.put("параметр2", "значение2");
         String result1 = HTTPParameterStringBuilder.getParamsString(params1);
-        assertEquals("?%D0%BF%D0%B0%D1%80%D0%B0%D0%BC%D0%B5%D1%82%D1%802=%D0%B7%D0%BD" +
-                "%D0%B0%D1%87%D0%B5%D0%BD%D0%B8%D0%B52&%D0%BF%D0%B0%D1%80%D0%B0%D0%BC%D0%B5%" +
-                "D1%82%D1%801=%D0%B7%D0%BD%D0%B0%D1%87%D0%B5%D0%BD%D0%B8%D0%B51", result1);
+        assertTrue(result1.equals("?параметр1=значение1&параметр2=значение2") ||
+                result1.equals("?параметр2=значение2&параметр1=значение1"));
 
         // Case 2
         Map<String, String> params2 = new HashMap<>();

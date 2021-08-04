@@ -1,5 +1,6 @@
 package com.nikshcherbakov.vacanciesfinder.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sun.istack.NotNull;
 import com.sun.istack.Nullable;
 
@@ -7,6 +8,9 @@ import javax.persistence.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 @Entity
 public class VacancyPreview {
@@ -15,7 +19,7 @@ public class VacancyPreview {
     private Long id;
 
     @Nullable
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.EAGER)
     private Address address;
 
     @Nullable
@@ -26,16 +30,21 @@ public class VacancyPreview {
     private String name;
 
     @NotNull
-    @Transient
+    @JsonProperty("employer")
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.EAGER)
     private VacancyEmployer vacancyEmployer;
 
     @NotNull
+    @JsonProperty("snippet")
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     private VacancySnippet vacancySnippet;
 
     @NotNull
     @Temporal(TemporalType.TIMESTAMP)
     private Date publishedAt;
+
+    @ManyToMany(mappedBy = "vacancies", fetch = FetchType.EAGER)
+    private Set<User> users;
 
     public VacancyPreview() {
     }
@@ -77,10 +86,6 @@ public class VacancyPreview {
         return salary;
     }
 
-    public void setSalary(VacancySalary salary) {
-        this.salary = salary;
-    }
-
     public String getName() {
         return name;
     }
@@ -101,15 +106,41 @@ public class VacancyPreview {
         return vacancySnippet;
     }
 
-    public void setSnippet(VacancySnippet vacancySnippet) {
-        this.vacancySnippet = vacancySnippet;
-    }
-
     public Date getPublishedAt() {
         return publishedAt;
     }
 
+    @JsonProperty("published_at")
     public void setPublishedAt(String publishedAt) throws ParseException {
         this.publishedAt = convertISO8601ToDate(publishedAt);
+    }
+
+    public Set<User> getUsers() {
+        return users;
+    }
+
+    public void setUsers(Set<User> users) {
+        this.users = users;
+    }
+
+    public void addUser(User user) {
+        if (users == null) {
+            users = new HashSet<>();
+        }
+        users.add(user);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        VacancyPreview that = (VacancyPreview) o;
+        return id.equals(that.id) && Objects.equals(address, that.address) && Objects.equals(salary, that.salary) &&
+                name.equals(that.name) && Objects.equals(vacancyEmployer, that.vacancyEmployer);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, address, salary, name, vacancyEmployer);
     }
 }

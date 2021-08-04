@@ -26,7 +26,7 @@ public class OnlyTestController {
         testUser.setTravelOptions(new TravelOptions(
                 location, 15, "public_transport"));
 
-        userService.saveUser(testUser);
+        userService.saveNewUser(testUser);
 
         return "successful-confirmation";
     }

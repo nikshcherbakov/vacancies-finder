@@ -144,7 +144,6 @@ class HeadHunterServiceTest {
 
         // Case 6 - Walking route
         User user6 = new User("simpleUser", "password");
-        user6.setSearchFilters("Менеждер;Продажи");
         user6.setTravelOptions(new TravelOptions(new Location(55.59225991787999, 37.598054613086425),
                 90, "walking"));
 
