@@ -42,11 +42,12 @@ public class UserService implements UserDetailsService {
     private final AddressRepository addressRepository;
     private final VacancyEmployerRepository employerRepository;
     private final VacancyPreviewRepository vacancyRepository;
+    private final VacancyAreaRepository areaRepository;
 
     public UserService(BCryptPasswordEncoder bCryptPasswordEncoder, UserRepository userRepository,
                        RoleRepository roleRepository, MailingPreferenceRepository mailingPreferenceRepository,
                        AddressRepository addressRepository, VacancyEmployerRepository employerRepository,
-                       VacancyPreviewRepository vacancyRepository) {
+                       VacancyPreviewRepository vacancyRepository, VacancyAreaRepository areaRepository) {
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
@@ -54,6 +55,7 @@ public class UserService implements UserDetailsService {
         this.addressRepository = addressRepository;
         this.employerRepository = employerRepository;
         this.vacancyRepository = vacancyRepository;
+        this.areaRepository = areaRepository;
     }
 
     @Override
@@ -314,8 +316,8 @@ public class UserService implements UserDetailsService {
                     /* Adding new vacancy to the database */
 
                     // Checking addresses
-                    if (vacancy.getAddress() != null) {
-                        Address vacancyAddress = vacancy.getAddress();
+                    Address vacancyAddress = vacancy.getAddress();
+                    if (vacancyAddress != null) {
                         Optional<Address> addressFromDb = addressRepository.findById(vacancyAddress.getId());
                         addressFromDb.ifPresentOrElse(vacancy::setAddress, () -> {
                             Address savedAddress = addressRepository.save(vacancyAddress);
@@ -323,15 +325,26 @@ public class UserService implements UserDetailsService {
                         });
                     }
 
-                    // Checking employers
-                    if (vacancy.getEmployer() != null) {
-                        VacancyEmployer vacancyEmployer = vacancy.getEmployer();
+                    // Checking employer
+                    VacancyEmployer vacancyEmployer = vacancy.getEmployer();
+                    if (vacancyEmployer != null) {
                         Optional<VacancyEmployer> employerFromDb = employerRepository.findById(vacancyEmployer.getId());
                         employerFromDb.ifPresentOrElse(vacancy::setEmployer, () -> {
                             VacancyEmployer savedEmployer = employerRepository.save(vacancyEmployer);
                             vacancy.setEmployer(savedEmployer);
                         });
                     }
+
+                    // Checking area
+                    VacancyArea vacancyArea = vacancy.getArea();
+                    if (vacancyArea != null) {
+                        Optional<VacancyArea> areaFromDb = areaRepository.findById(vacancyArea.getId());
+                        areaFromDb.ifPresentOrElse(vacancy::setArea, () -> {
+                            VacancyArea savedArea = areaRepository.save(vacancyArea);
+                            vacancy.setArea(savedArea);
+                        });
+                    }
+
                     vacancy.addUser(user);
                     user.addVacancy(vacancy);
                 }
@@ -339,6 +352,7 @@ public class UserService implements UserDetailsService {
         }
 
         userRepository.saveAll(userVacanciesMap.keySet());
+        logger.info("Users are saved after adding vacancies");
     }
 
 }

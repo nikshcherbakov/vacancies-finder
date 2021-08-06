@@ -6,7 +6,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.*;
@@ -312,9 +311,6 @@ public class HeadHunterService implements IJobSearchService {
 
     private HeadHunterJobsRequest sendJobsRequest(Map<String, String> params)
             throws HTTPEmptyGetParameterException {
-        // TODO DELETE BELOW AFTER
-//        String json = JsonManager.getJsonByUrl(vacanciesUrl, params);
-//        return JSON.parseObject(json, HeadHunterJobsRequest.class);
         String url;
         if (params != null) {
             String paramsUrl = HTTPParameterStringBuilder.getParamsString(params);

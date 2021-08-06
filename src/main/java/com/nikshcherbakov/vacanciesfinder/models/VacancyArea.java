@@ -1,38 +1,37 @@
 package com.nikshcherbakov.vacanciesfinder.models;
 
-import com.sun.istack.NotNull;
-
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.validation.constraints.NotNull;
 import java.util.Set;
 
 @Entity
-public class VacancyEmployer {
+public class VacancyArea {
 
     @Id
     @NotNull
-    private Long id;
+    private Short id;
 
     @NotNull
     private String name;
 
-    @OneToMany(mappedBy = "vacancyEmployer", orphanRemoval = true)
+    @OneToMany(mappedBy = "vacancyArea")
     private Set<VacancyPreview> vacancyPreviews;
 
-    public VacancyEmployer(Long id, String name) {
+    public VacancyArea() {
+    }
+
+    public VacancyArea(Short id, String name) {
         this.id = id;
         this.name = name;
     }
 
-    public VacancyEmployer() {
-    }
-
-    public Long getId() {
+    public Short getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Short id) {
         this.id = id;
     }
 

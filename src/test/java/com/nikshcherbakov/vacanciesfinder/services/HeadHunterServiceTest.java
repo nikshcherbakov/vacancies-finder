@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,7 +21,7 @@ class HeadHunterServiceTest {
     private GoogleMapsService googleMapsService;
 
     @Test
-    void simpleJobRequestReturnsSomething() throws IOException, HTTPEmptyGetParameterException {
+    void simpleJobRequestReturnsSomething() throws HTTPEmptyGetParameterException {
         Map<String, String> params = new HashMap<>();
         params.put("text", "Менеджер");
         params.put("per_page", "100");
@@ -154,7 +153,7 @@ class HeadHunterServiceTest {
     }
 
     @Test
-    void searchNextByUserWorksFine() throws IOException, GoogleMapsInvalidApiKeyException, ParseException {
+    void searchNextByUserWorksFine() throws IOException, GoogleMapsInvalidApiKeyException {
         // Case 1 - New user without vacancies found
         User user1 = new User("newUser", "password");
         user1.setSearchFilters("Программист;Java");
@@ -167,10 +166,19 @@ class HeadHunterServiceTest {
         User user2 = new User("existingUser", "password");
         user2.setSearchFilters("Java;Backend;Junior");
         List<VacancyPreview> vacanciesList = new ArrayList<>();
-        vacanciesList.add(new VacancyPreview(0L, null, null, "Vacancy name",
-                new VacancyEmployer(0L, "Vacancy employer"),
-                new VacancySnippet("Vacancy requirement", "Vacancy responsibility"),
-                "2021-07-03T22:00:00+0300"));
+
+        VacancyPreview vacancy = new VacancyPreview.Builder()
+                .withId(0L)
+                .withName("Vacancy name")
+                .withEmployer(new VacancyEmployer(0L, "Vacancy employer"))
+                .withVacancySnippet(new VacancySnippet("Vacancy requirement",
+                        "Vacancy responsibility"))
+                .withArea(new VacancyArea((short) 0, "Some area"))
+                .withPublishedAt(new GregorianCalendar(2021, Calendar.JULY, 3, 22, 0,
+                        0).getTime())
+                .build();
+
+        vacanciesList.add(vacancy);
         user2.setVacancies(vacanciesList);
 
         Date lastJobRequestDate = new GregorianCalendar(2021, Calendar.JULY, 3,

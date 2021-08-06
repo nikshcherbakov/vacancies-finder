@@ -5,6 +5,7 @@ import com.sun.istack.NotNull;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 public class VacancySnippet {
@@ -22,6 +23,9 @@ public class VacancySnippet {
     @Type(type = "text")
     @JsonProperty("responsibility")
     private String responsibility;
+
+    @OneToOne(mappedBy = "vacancySnippet")
+    private VacancyPreview vacancyPreview;
 
     public VacancySnippet(String requirement, String responsibility) {
         this.requirement = requirement;
@@ -53,5 +57,13 @@ public class VacancySnippet {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public VacancyPreview getVacancyPreview() {
+        return vacancyPreview;
+    }
+
+    public void setVacancyPreview(VacancyPreview vacancyPreview) {
+        this.vacancyPreview = vacancyPreview;
     }
 }

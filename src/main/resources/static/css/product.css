@@ -95,6 +95,10 @@ p.info-regular {
   padding: 50px 100px 50px;
 }
 
+.account-form > h1 {
+  padding-bottom: 30px;
+}
+
 .account-form-default-bottom-padding {
   padding-bottom: 1.7rem;
 }
@@ -181,4 +185,9 @@ a.disabled {
 
 svg.navbar-logo {
   margin-top: -8px;
+}
+
+div.vacancies-table {
+  width: 100%;
+  overflow: auto;
 }

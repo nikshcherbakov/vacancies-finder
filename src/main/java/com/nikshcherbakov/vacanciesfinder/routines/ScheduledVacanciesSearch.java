@@ -25,7 +25,7 @@ public class ScheduledVacanciesSearch {
         this.userService = userService;
     }
 
-    @Scheduled(fixedDelay = 120000) // TODO change to cron from app.props
+//    @Scheduled(fixedDelay = 120000) // TODO change to cron from app.props
 //    @Transactional
     public void addNewVacanciesToAllActiveUsers() {
         List<User> users = userService.getAllActiveUsers();

@@ -220,6 +220,13 @@ public class User implements UserDetails {
         this.vacancies.addAll(vacancies);
     }
 
+    public void removeVacancy(VacancyPreview vacancy) {
+        if (vacancies == null) {
+            return;
+        }
+        vacancies.remove(vacancy);
+    }
+
     public List<VacancyPreview> getFavoriteVacancies() {
         return favoriteVacancies;
     }
@@ -246,6 +253,13 @@ public class User implements UserDetails {
             favoriteVacancies = new ArrayList<>();
         }
         favoriteVacancies.addAll(vacancies);
+    }
+
+    public void removeFavoriteVacancy(VacancyPreview vacancy) {
+        if (favoriteVacancies == null) {
+            return;
+        }
+        favoriteVacancies.remove(vacancy);
     }
 
     @Override

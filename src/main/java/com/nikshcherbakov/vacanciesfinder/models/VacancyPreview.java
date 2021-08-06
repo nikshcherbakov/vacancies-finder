@@ -15,7 +15,65 @@ import java.util.Set;
 @Entity
 public class VacancyPreview {
 
+    public static class Builder {
+        private final VacancyPreview vacancyPreview;
+
+        public Builder() {
+            vacancyPreview = new VacancyPreview();
+        }
+
+        public Builder withId(@NotNull Long id) {
+            vacancyPreview.id = id;
+            return this;
+        }
+
+        public Builder withAddress(@Nullable Address address) {
+            vacancyPreview.address = address;
+            return this;
+        }
+
+        public Builder withSalary(@Nullable VacancySalary salary) {
+            vacancyPreview.salary = salary;
+            return this;
+        }
+
+        public Builder withName(@NotNull String name) {
+            vacancyPreview.name = name;
+            return this;
+        }
+
+        public Builder withArea(@NotNull VacancyArea area) {
+            vacancyPreview.vacancyArea = area;
+            return this;
+        }
+
+        public Builder withEmployer(@NotNull VacancyEmployer employer) {
+            vacancyPreview.vacancyEmployer = employer;
+            return this;
+        }
+
+        public Builder withVacancySnippet(@NotNull VacancySnippet snippet) {
+            vacancyPreview.vacancySnippet = snippet;
+            return this;
+        }
+
+        public Builder withPublishedAt(@NotNull Date publishedAt) {
+            vacancyPreview.publishedAt = publishedAt;
+            return this;
+        }
+
+        public Builder withUsers(@Nullable Set<User> users) {
+            vacancyPreview.users = users;
+            return this;
+        }
+
+        public VacancyPreview build() {
+            return vacancyPreview;
+        }
+    }
+
     @Id
+    @NotNull
     private Long id;
 
     @Nullable
@@ -28,6 +86,14 @@ public class VacancyPreview {
 
     @NotNull
     private String name;
+
+    @NotNull
+    @JsonProperty("alternate_url")
+    private String url;
+
+    @NotNull
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.EAGER)
+    private VacancyArea vacancyArea;
 
     @NotNull
     @JsonProperty("employer")
@@ -47,23 +113,6 @@ public class VacancyPreview {
     private Set<User> users;
 
     public VacancyPreview() {
-    }
-
-    public VacancyPreview(Long id, Address address, VacancySalary salary, String name, VacancyEmployer vacancyEmployer,
-                          VacancySnippet vacancySnippet, String publishedAt) throws ParseException {
-        this.id = id;
-        this.address = address;
-        this.salary = salary;
-        this.name = name;
-        this.vacancyEmployer = vacancyEmployer;
-        this.vacancySnippet = vacancySnippet;
-        this.publishedAt = convertISO8601ToDate(publishedAt);
-    }
-
-    private static Date convertISO8601ToDate(String dateStr) throws ParseException {
-        String dateWithoutTimezone = dateStr.substring(0, 10) + dateStr.substring(11, 19);
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-ddHH:mm:ss");
-        return formatter.parse(dateWithoutTimezone);
     }
 
     public Long getId() {
@@ -128,6 +177,28 @@ public class VacancyPreview {
             users = new HashSet<>();
         }
         users.add(user);
+    }
+
+    public VacancyArea getArea() {
+        return vacancyArea;
+    }
+
+    public void setArea(VacancyArea vacancyArea) {
+        this.vacancyArea = vacancyArea;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    private static Date convertISO8601ToDate(String dateStr) throws ParseException {
+        String dateWithoutTimezone = dateStr.substring(0, 10) + dateStr.substring(11, 19);
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-ddHH:mm:ss");
+        return formatter.parse(dateWithoutTimezone);
     }
 
     @Override

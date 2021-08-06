@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Favorite Vacancies - Vacancies Finder</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    <link href="css/product.css" rel="stylesheet">
+    <link rel="icon" type="image/ico" th:href="@{../static/favicon.ico}">
+</head>
+<body>
+<div th:replace="fragments/header :: header"></div>
+
+<div class="account-form">
+    <h1>Понравившиеся вакансии</h1>
+
+    <div class="vacancies-table">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Вакансия</th>
+                <th scope="col">Работодатель</th>
+                <th scope="col">Зарплата</th>
+                <th scope="col">Местоположение</th>
+                <th scope="col">Обязанности</th>
+                <th scope="col">Ссылка</th>
+                <th scope="col">Действия</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="vacancy: ${favoriteVacancies}">
+                <th scope="row" th:text="${vacancy.number}"></th>
+                <td th:text="${vacancy.name}" th:style="'font-weight: bold;'"></td>
+                <td th:text="${vacancy.employer}"></td>
+                <td>
+                    <div th:if="${vacancy.salaryFrom}">
+                        От <span th:text="${vacancy.salaryFrom}" th:style="'font-weight: bold;'"></span>
+                    </div>
+                    <div th:if="${vacancy.salaryFrom != null and vacancy.salaryTo != null}">
+                        до <span th:text="${vacancy.salaryTo}" th:style="'font-weight: bold;'"></span>
+                    </div>
+                    <div th:if="${vacancy.salaryFrom == null and vacancy.salaryTo != null}">
+                        До <span th:text="${vacancy.salaryTo}" th:style="'font-weight: bold;'"></span>
+                    </div>
+                    <span th:if="${vacancy.salaryFrom != null or vacancy.salaryTo != null}"
+                          th:text="${vacancy.currency}" th:style="'font-weight: bold;'"></span>
+                    <div th:if="${vacancy.salaryFrom == null and vacancy.salaryTo == null}">-</div>
+                </td>
+                <td>
+                    <span th:if="${vacancy.address}" th:text="${vacancy.address}"></span>
+                    <span th:if="${vacancy.address == null}">-</span>
+                </td>
+                <td>
+                    <div th:if="${vacancy.responsibility}" th:text="${vacancy.responsibility}"></div>
+                    <div th:if="${vacancy.responsibility == null}">-</div>
+                </td>
+                <td><a th:href="${vacancy.link}" class="btn btn-primary">hh.ru</a></td>
+                <td>
+                    <a th:href="@{/dislikeVacancy(id=${vacancy.vacancyId}, fromPage=${page})}"
+                       class="btn btn-danger">Удалить</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <a style="padding-right: 10px" th:if="${previousPage}" th:href="@{/favoriteVacancies(page=${previousPage})}">
+        Предыдущая страница
+    </a>
+    <a style="padding-right: 10px" th:if="${nextPage}" th:href="@{/favoriteVacancies(page=${nextPage})}">
+        Следующая страница
+    </a>
+
+</div>
+
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

@@ -45,7 +45,12 @@ public class AsyncJobSearchService {
             logger.error(String.format("Cannot complete vacancies request for user %s: Google Maps api key is invalid",
                     username));
         }
-        logger.info(String.format("New vacancies are found for user %s", username));
+        if (vacanciesFound != null) {
+            logger.info(String.format("New vacancies are found for user %s", username));
+        } else {
+            logger.error(String.format("No vacancies are found for user %s", username));
+        }
+
         return CompletableFuture.completedFuture(vacanciesFound);
     }
 }

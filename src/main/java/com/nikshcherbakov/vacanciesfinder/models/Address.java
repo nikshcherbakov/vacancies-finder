@@ -182,4 +182,24 @@ public class Address {
     public void setVacancyPreviews(Set<VacancyPreview> vacancyPreviews) {
         this.vacancyPreviews = vacancyPreviews;
     }
+
+    /**
+     * Returns address as string
+     * @return string of address if at least city is specified, otherwise returns null
+     */
+    public String asString() {
+        if (city != null && street != null && building != null) {
+            // Returning full address (russian standard address format)
+            return String.format("%s, %s, %s", city, street, building);
+        }
+        else if (city != null && street != null) {
+            // If building is not specified - we return just city and street
+            return String.format("%s, %s", city, street);
+        }
+        else if (city != null) {
+            return city;
+        } else {
+            return null;
+        }
+    }
 }
