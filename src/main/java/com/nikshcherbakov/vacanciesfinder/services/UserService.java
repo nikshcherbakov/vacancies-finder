@@ -3,7 +3,6 @@ package com.nikshcherbakov.vacanciesfinder.services;
 import com.nikshcherbakov.vacanciesfinder.VacanciesFinderApplication;
 import com.nikshcherbakov.vacanciesfinder.models.*;
 import com.nikshcherbakov.vacanciesfinder.repositories.*;
-import com.nikshcherbakov.vacanciesfinder.routines.ScheduledVacanciesSearch;
 import com.nikshcherbakov.vacanciesfinder.utils.TelegramIsNotDefinedException;
 import com.nikshcherbakov.vacanciesfinder.utils.UserAccountForm;
 import com.nikshcherbakov.vacanciesfinder.utils.UserNotFoundException;
@@ -283,76 +282,74 @@ public class UserService implements UserDetailsService {
 
     // TODO GENERAL Подумать над тем, чтобы сделать метод transactional
     /**
-     * Adds new found vacancies to user and saves the database. If a user does
+     * Adds new found vacancies to a user and saves the database. If a user does
      * not exist in the database the method will log out a corresponding message
-     * @param userVacanciesMap a map where list of new found vacancies
-     *                         is associated with corresponding user
+     * @param user a user to who found vacancies will be added
      */
-    public void addFoundVacanciesAndSave(Map<User, List<VacancyPreview>> userVacanciesMap) {
-        for (Map.Entry<User, List<VacancyPreview>> entry : userVacanciesMap.entrySet()) {
-            // Taking out each entry
-            User user = entry.getKey();
-            List<VacancyPreview> vacancies = entry.getValue();
+    public void addFoundVacanciesAndSave(User user) {
+        List<VacancyPreview> vacancies = user.getLastJobRequestVacancies();
 
-            // Checking if user exists in the database
-            String username = user.getUsername();
-            if (userRepository.findByUsername(username) == null) {
-                // No such user in the database
-                logger.info(String.format("Attempt to save vacancy to a non-existing user %s is registered", username));
-            }
+        // Checking if user exists in the database
+        String username = user.getUsername();
+        if (userRepository.findByUsername(username) == null) {
+            // No such user in the database
+            logger.info(String.format("Attempt to save vacancy to a non-existing user %s is registered", username));
+        }
 
-            for (VacancyPreview vacancy : vacancies) {
-                /* Checking if a vacancy is already in the user's list of vacancies */
-                Optional<VacancyPreview> vacancyFromDb = vacancyRepository.findById(vacancy.getId());
-                if (vacancyFromDb.isPresent()) {
-                    /* Vacancy exists already */
-                    VacancyPreview existingVacancyFromDb = vacancyFromDb.get();
-                    if (!existingVacancyFromDb.getUsers().contains(user)) {
-                        // User does not have this vacancy (needed if a vacancy is published not for the first time)
-                        existingVacancyFromDb.addUser(user);
-                        user.addVacancy(existingVacancyFromDb);
-                    }
-                } else {
-                    /* Adding new vacancy to the database */
-
-                    // Checking addresses
-                    Address vacancyAddress = vacancy.getAddress();
-                    if (vacancyAddress != null) {
-                        Optional<Address> addressFromDb = addressRepository.findById(vacancyAddress.getId());
-                        addressFromDb.ifPresentOrElse(vacancy::setAddress, () -> {
-                            Address savedAddress = addressRepository.save(vacancyAddress);
-                            vacancy.setAddress(savedAddress);
-                        });
-                    }
-
-                    // Checking employer
-                    VacancyEmployer vacancyEmployer = vacancy.getEmployer();
-                    if (vacancyEmployer != null) {
-                        Optional<VacancyEmployer> employerFromDb = employerRepository.findById(vacancyEmployer.getId());
-                        employerFromDb.ifPresentOrElse(vacancy::setEmployer, () -> {
-                            VacancyEmployer savedEmployer = employerRepository.save(vacancyEmployer);
-                            vacancy.setEmployer(savedEmployer);
-                        });
-                    }
-
-                    // Checking area
-                    VacancyArea vacancyArea = vacancy.getArea();
-                    if (vacancyArea != null) {
-                        Optional<VacancyArea> areaFromDb = areaRepository.findById(vacancyArea.getId());
-                        areaFromDb.ifPresentOrElse(vacancy::setArea, () -> {
-                            VacancyArea savedArea = areaRepository.save(vacancyArea);
-                            vacancy.setArea(savedArea);
-                        });
-                    }
-
-                    vacancy.addUser(user);
-                    user.addVacancy(vacancy);
+        for (VacancyPreview vacancy : vacancies) {
+            /* Checking if a vacancy is already in the user's list of vacancies */
+            Optional<VacancyPreview> vacancyFromDb = vacancyRepository.findById(vacancy.getId());
+            if (vacancyFromDb.isPresent()) {
+                /* Vacancy exists already */
+                VacancyPreview existingVacancyFromDb = vacancyFromDb.get();
+                if (!existingVacancyFromDb.getUsers().contains(user)) {
+                    // User does not have this vacancy (needed if a vacancy is published not for the first time)
+                    existingVacancyFromDb.addUser(user);
+                    user.addVacancy(existingVacancyFromDb);
                 }
+            } else {
+                /* Adding new vacancy to the database */
+
+                // Checking addresses
+                Address vacancyAddress = vacancy.getAddress();
+                if (vacancyAddress != null) {
+                    Optional<Address> addressFromDb = addressRepository.findById(vacancyAddress.getId());
+                    addressFromDb.ifPresentOrElse(vacancy::setAddress, () -> {
+                        Address savedAddress = addressRepository.save(vacancyAddress);
+                        vacancy.setAddress(savedAddress);
+                    });
+                }
+
+                // Checking employer
+                VacancyEmployer vacancyEmployer = vacancy.getEmployer();
+                if (vacancyEmployer != null) {
+                    Optional<VacancyEmployer> employerFromDb = employerRepository.findById(vacancyEmployer.getId());
+                    employerFromDb.ifPresentOrElse(vacancy::setEmployer, () -> {
+                        VacancyEmployer savedEmployer = employerRepository.save(vacancyEmployer);
+                        vacancy.setEmployer(savedEmployer);
+                    });
+                }
+
+                // Checking area
+                VacancyArea vacancyArea = vacancy.getArea();
+                if (vacancyArea != null) {
+                    Optional<VacancyArea> areaFromDb = areaRepository.findById(vacancyArea.getId());
+                    areaFromDb.ifPresentOrElse(vacancy::setArea, () -> {
+                        VacancyArea savedArea = areaRepository.save(vacancyArea);
+                        vacancy.setArea(savedArea);
+                    });
+                }
+
+                vacancy.addUser(user);
+                user.addVacancy(vacancy);
             }
         }
 
-        userRepository.saveAll(userVacanciesMap.keySet());
-        logger.info("Users are saved after adding vacancies");
+        userRepository.save(user);
+        logger.info(String.format(user.getLastJobRequestVacancies().size() > 0?
+                "User %s is saved after adding vacancies" :
+                "No new vacancies are found for user %s",
+                user.getUsername()));
     }
 
 }

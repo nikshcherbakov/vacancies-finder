@@ -59,6 +59,9 @@ public class User implements UserDetails {
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<VacancyPreview> favoriteVacancies;
 
+    @Transient
+    private List<VacancyPreview> lastJobRequestVacancies;
+
     public User() {
     }
 
@@ -260,6 +263,14 @@ public class User implements UserDetails {
             return;
         }
         favoriteVacancies.remove(vacancy);
+    }
+
+    public List<VacancyPreview> getLastJobRequestVacancies() {
+        return lastJobRequestVacancies;
+    }
+
+    public void setLastJobRequestVacancies(List<VacancyPreview> lastJobRequestVacancies) {
+        this.lastJobRequestVacancies = lastJobRequestVacancies;
     }
 
     @Override
