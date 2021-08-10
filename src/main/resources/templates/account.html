@@ -26,6 +26,10 @@
         <p th:if="${telegramIsTaken}" class="alert alert-danger" role="alert">
             Указанный идентификатор Telegram уже используется!
         </p>
+        <p th:if="${mailingIsActive == false}" class="alert alert-info" role="alert">
+            Для запуска поиска вакансий и рассылки, пожалуйста, добавьте поисковые фильтры, укажите
+            зарплату, или добавьте Ваше местоположение
+        </p>
 
         <h1>Личный кабинет</h1>
 

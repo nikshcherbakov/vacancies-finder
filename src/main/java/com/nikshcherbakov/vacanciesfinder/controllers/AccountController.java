@@ -52,12 +52,20 @@ public class AccountController {
                 user.getSearchFilters()
         );
 
+        // Checking if telegram is taken already
+        User userWithActiveTelegram = userService.findUserByActiveTelegram(userAccountForm.getTelegram());
         boolean telegramIsTaken = !userAccountForm.getTelegram().equals("") &&
-                !userService.findUserByActiveTelegram(userAccountForm.getTelegram()).equals(user);
+                userWithActiveTelegram != null && !user.equals(userWithActiveTelegram);
+
+        // Mailing is active only when user provided at least search filters, location or salary
+        boolean mailingIsActive = user.getSearchFilters() != null ||
+                user.getTravelOptions() != null ||
+                user.getSalary() != null;
 
         model.addAttribute("userForm", userAccountForm);
         model.addAttribute("botName", botName);
         model.addAttribute("telegramIsTaken", telegramIsTaken);
+        model.addAttribute("mailingIsActive", mailingIsActive);
         return "account";
     }
 
@@ -67,9 +75,15 @@ public class AccountController {
         try {
             boolean changesSaved = userService.refreshUserDataWithUserAccountForm(userForm);
 
+            boolean mailingIsActive = !userForm.getSearchFilters().isEmpty() ||
+                    userForm.getLatitude() != defaultLatitude ||
+                    userForm.getLongitude() != defaultLongitude ||
+                    userForm.getSalaryValue() != null;
+
             model.addAttribute("userForm", userForm);
             model.addAttribute("savedSuccessfully", changesSaved);
             model.addAttribute("botName", botName);
+            model.addAttribute("mailingIsActive", mailingIsActive);
             return "account";
         } catch (TelegramIsNotDefinedException e) {
             userForm.setUseTelegram(false);

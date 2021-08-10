@@ -12,6 +12,7 @@ public class TelegramSettings {
     private Long id;
 
     @NotNull
+    @Column(unique = true)
     private String telegram;
 
     @Nullable

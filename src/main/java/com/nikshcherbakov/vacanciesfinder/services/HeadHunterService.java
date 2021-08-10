@@ -52,7 +52,7 @@ public class HeadHunterService implements IJobSearchService {
      * method work correctly {@code User.lastJobRequestDate} should not be updated manually.
      * Note that the method will always return an empty array in case a user specifies no
      * information. This means that if {@code User.searchFilters}, {@code User.travelOptions}
-     * and {@code User.salary} is {@code null} then the result will also be and empty array.
+     * and {@code User.salary} is {@code null} then the result will also be an empty array.
      * It's also important to know that there is a higher bound for number of vacancies to
      * be returned. The maximum number of possible vacancies is defined in the
      * {@code application.properties} file (parameter
