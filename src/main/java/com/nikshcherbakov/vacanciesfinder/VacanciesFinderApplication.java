@@ -7,7 +7,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 
-// TODO GENERAL изменить классы в логгерах на соответствующие
 @SpringBootApplication
 @EnableAsync
 @EnableScheduling

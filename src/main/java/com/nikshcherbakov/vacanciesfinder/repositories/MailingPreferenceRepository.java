@@ -5,8 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-// TODO GENERAL заменить тип id в MailingPreference на short
-public interface MailingPreferenceRepository extends JpaRepository<MailingPreference, Long> {
+public interface MailingPreferenceRepository extends JpaRepository<MailingPreference, Short> {
     Optional<MailingPreference> findMailingPreferenceByUseEmailAndUseTelegram(
             boolean useEmail, boolean useTelegram);
 }
