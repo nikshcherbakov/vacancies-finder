@@ -4,7 +4,7 @@ import com.nikshcherbakov.vacanciesfinder.models.MailingPreference;
 import com.nikshcherbakov.vacanciesfinder.models.Role;
 import com.nikshcherbakov.vacanciesfinder.models.User;
 import com.nikshcherbakov.vacanciesfinder.repositories.UserRepository;
-import com.nikshcherbakov.vacanciesfinder.services.MailService;
+import com.nikshcherbakov.vacanciesfinder.services.EmailService;
 import com.nikshcherbakov.vacanciesfinder.services.UserService;
 import com.nikshcherbakov.vacanciesfinder.utils.TelegramIsNotDefinedException;
 import org.springframework.stereotype.Controller;
@@ -21,13 +21,13 @@ public class SignUpController {
 
     private final UserService userService;
 
-    private final MailService mailService;
+    private final EmailService emailService;
 
     private final UserRepository userRepository;
 
-    public SignUpController(UserService userService, MailService mailService, UserRepository userRepository) {
+    public SignUpController(UserService userService, EmailService emailService, UserRepository userRepository) {
         this.userService = userService;
-        this.mailService = mailService;
+        this.emailService = emailService;
         this.userRepository = userRepository;
     }
 
@@ -72,7 +72,7 @@ public class SignUpController {
         }
 
         // Sending a confirmation message to a user by email
-        mailService.sendConfirmMessage(user);
+        emailService.sendConfirmMessage(user);
 
         return "confirmation-sent";
     }
@@ -85,7 +85,7 @@ public class SignUpController {
             return "403";
         }
 
-        User user = userRepository.findByUsername(username);
+        User user = userRepository.findByUsername(username).orElse(null);
 
         if (user != null) {
             // User exists

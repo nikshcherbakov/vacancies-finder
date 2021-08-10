@@ -40,7 +40,8 @@ public class User implements UserDetails {
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private MailingPreference mailingPreference;
 
-    private String telegram;
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    private TelegramSettings telegramSettings;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private TravelOptions travelOptions;
@@ -56,7 +57,7 @@ public class User implements UserDetails {
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<VacancyPreview> vacancies;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<VacancyPreview> favoriteVacancies;
 
     @Transient
@@ -73,7 +74,7 @@ public class User implements UserDetails {
         this.enabled = false;
 
         // Telegram is optional
-        this.telegram = null;
+        this.telegramSettings = null;
 
         // Travel options are not defined by default
         this.travelOptions = null;
@@ -158,12 +159,12 @@ public class User implements UserDetails {
         this.mailingPreference = mailingPreference;
     }
 
-    public String getTelegram() {
-        return telegram;
+    public TelegramSettings getTelegramSettings() {
+        return telegramSettings;
     }
 
-    public void setTelegram(String telegram) {
-        this.telegram = telegram;
+    public void setTelegramSettings(TelegramSettings telegramSettings) {
+        this.telegramSettings = telegramSettings;
     }
 
     public TravelOptions getTravelOptions() {
@@ -271,6 +272,30 @@ public class User implements UserDetails {
 
     public void setLastJobRequestVacancies(List<VacancyPreview> lastJobRequestVacancies) {
         this.lastJobRequestVacancies = lastJobRequestVacancies;
+    }
+
+    /**
+     * Returns string description of user's search filters
+     * @param withMarkdown whether to insert HTML-markdown in the description
+     *                     string
+     * @return string description, empty string ("") if search filters is null
+     */
+    public String getSearchFiltersListMessage(boolean withMarkdown) {
+        if (searchFilters != null) {
+            if (!searchFilters.isEmpty()) {
+                String[] filters = searchFilters.split(";");
+
+                int number = 1;
+                StringBuilder builder = new StringBuilder();
+                for (String filter : filters) {
+                    if (withMarkdown) filter = String.format("<b>%s</b>", filter);
+                    builder.append(String.format("%d. %s\n", number, filter));
+                    number++;
+                }
+                return builder.substring(0, builder.length() - 1);
+            }
+        }
+        return "";
     }
 
     @Override

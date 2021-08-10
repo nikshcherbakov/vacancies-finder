@@ -23,6 +23,9 @@
         <p th:if="${telegramIsNotDefined}" class="alert alert-danger" role="alert">
             Для telegram рассылки необходимо указать идентификатор telegram
         </p>
+        <p th:if="${telegramIsTaken}" class="alert alert-danger" role="alert">
+            Указанный идентификатор Telegram уже используется!
+        </p>
 
         <h1>Личный кабинет</h1>
 
@@ -62,9 +65,15 @@
         <div class="form-group row">
             <label for="telegram" class="col-sm-2 col-form-label">Telegram</label>
             <div class="col-sm-10">
-                <input type="text" class="form-control" id="telegram"
-                       th:field="*{telegram}" placeholder="Укажите ваш идентификатор telegram, например @mytelegram"
-                       pattern="^@.+">
+
+                <label class="sr-only" for="telegram">Telegram</label>
+                <div class="input-group mb-2">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">@</div>
+                    </div>
+                    <input type="text" class="form-control" id="telegram" th:field="*{telegram}"
+                           placeholder="Укажите ваш идентификатор telegram, например @mytelegram"/>
+                </div>
             </div>
         </div>
         <!--  Telegram checker  -->
@@ -77,6 +86,8 @@
                     <label class="form-check-label" for="sendByTelegramChecker">
                         Использовать Telegram при рассылке подобранных вакансий
                     </label>
+                    <input style="font-size: 10pt" th:if="${userForm.useTelegram}" type="text" class="form-control-plaintext"
+                           th:value="'Чтобы получать рассылку на Telegtam, найдите бота ' + ${botName} + ' и напишите /start'">
                 </div>
             </div>
         </div>

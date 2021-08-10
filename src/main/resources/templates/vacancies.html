@@ -13,7 +13,7 @@
 <div class="account-form">
     <h1>Подобранные вакансии</h1>
 
-    <div class="vacancies-table">
+    <div th:if="${!#lists.isEmpty(vacancies)}" class="vacancies-table">
         <table class="table table-striped">
             <thead>
             <tr>
@@ -63,6 +63,8 @@
             </tbody>
         </table>
     </div>
+
+    <div th:if="${#lists.isEmpty(vacancies)}">Здесь будут оторажаться найденные для Вас вакансии</div>
 
     <a style="padding-right: 10px" th:if="${previousPage}" th:href="@{/vacancies(page=${previousPage})}">
         Предыдущая страница

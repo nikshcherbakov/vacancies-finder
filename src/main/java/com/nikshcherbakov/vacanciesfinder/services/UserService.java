@@ -4,6 +4,7 @@ import com.nikshcherbakov.vacanciesfinder.VacanciesFinderApplication;
 import com.nikshcherbakov.vacanciesfinder.models.*;
 import com.nikshcherbakov.vacanciesfinder.repositories.*;
 import com.nikshcherbakov.vacanciesfinder.utils.TelegramIsNotDefinedException;
+import com.nikshcherbakov.vacanciesfinder.utils.TelegramIsTakenException;
 import com.nikshcherbakov.vacanciesfinder.utils.UserAccountForm;
 import com.nikshcherbakov.vacanciesfinder.utils.UserNotFoundException;
 import org.slf4j.Logger;
@@ -57,9 +58,10 @@ public class UserService implements UserDetailsService {
         this.areaRepository = areaRepository;
     }
 
+    // TODO GENERAL подумать об удалении одного из методов (loadUserByUsername и UserRepository.loadByUsername)
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User userInDatabase = userRepository.findByUsername("username");
+        User userInDatabase = userRepository.findByUsername("username").orElse(null);
 
         if (userInDatabase != null) {
             // User found in the database
@@ -76,7 +78,7 @@ public class UserService implements UserDetailsService {
     public boolean saveNewUser(@NotNull User user) throws TelegramIsNotDefinedException {
 
         // Checking if a user exists in the database
-        if (userRepository.findByUsername(user.getUsername()) != null) {
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             // User already exists in the database
             return false;
         }
@@ -101,9 +103,9 @@ public class UserService implements UserDetailsService {
 
     // TODO GENERAL подумать над тем, чтобы сделать метод transactional
     public boolean refreshUserDataWithUserAccountForm(@NotNull UserAccountForm form)
-            throws TelegramIsNotDefinedException {
+            throws TelegramIsNotDefinedException, TelegramIsTakenException {
 
-        User userFromDb = userRepository.findByUsername(form.getUsername());
+        User userFromDb = userRepository.findByUsername(form.getUsername()).orElse(null);
 
         if (userFromDb == null) {
             // No such user in the database
@@ -113,10 +115,16 @@ public class UserService implements UserDetailsService {
         /* Saving data from UserAccountForm */
         MailingPreference mailingPreference = new MailingPreference(form.isUseEmail(),
                 form.isUseTelegram());
-
+        String searchFilters = form.getSearchFilters().equals("") ? null : form.getSearchFilters();
         String telegram = form.getTelegram().equals("") ? null : form.getTelegram();
 
-        String searchFilters = form.getSearchFilters().equals("") ? null : form.getSearchFilters();
+        // Checking if a telegram is taken already by another user
+        if (telegram != null) {
+            User userWithActiveTelegram = findUserByActiveTelegram(telegram);
+            if (userWithActiveTelegram != null && !userFromDb.equals(userWithActiveTelegram)) {
+                throw new TelegramIsTakenException();
+            }
+        }
 
         TravelOptions travelOptions = null;
         if (userFromDb.getTravelOptions() == null) {
@@ -140,10 +148,24 @@ public class UserService implements UserDetailsService {
             salary = new Salary(form.getSalaryValue(), form.getCurrency());
         }
 
+        TelegramSettings telegramSettings = null;
+        if (telegram != null) {
+            telegramSettings = new TelegramSettings(telegram);
+        }
+
         /* Adding changed fields to a user */
-        userFromDb.setTelegram(telegram);
         userFromDb.setSearchFilters(searchFilters);
         userFromDb.setMailingPreference(mailingPreference);
+
+        if (userFromDb.getTelegramSettings() != null) {
+            if (!userFromDb.getTelegramSettings().getTelegram().equals(telegram)) {
+                // User changed telegram - deleting one cause it's OneToOne relationship
+                userFromDb.setTelegramSettings(telegram != null ? new TelegramSettings(telegram) : null);
+            }
+        } else {
+            // Nothing to delete - adding new telegram settings to a user
+            userFromDb.setTelegramSettings(telegramSettings);
+        }
 
         if (userFromDb.getSalary() != null) {
             if (!userFromDb.getSalary().equals(salary)) {
@@ -177,7 +199,6 @@ public class UserService implements UserDetailsService {
 
         /* Roles */
         Set<Role> userRolesFromDb = new HashSet<>();
-
         for (Role userRole: user.getRoles()) {
             String roleName = userRole.getName();
             Role roleFromDb = roleRepository.findByName(roleName);
@@ -197,32 +218,26 @@ public class UserService implements UserDetailsService {
             roleFromDb.getUsers().add(user);
             userRolesFromDb.add(roleFromDb);
         }
-
         // User's roles = objects retrieved from db
         user.setRoles(userRolesFromDb);
 
         /* Travel options */
         TravelOptions userTravelOptions = user.getTravelOptions();
-
         if (userTravelOptions != null) {
             /* User specified travel options */
             userTravelOptions.setUser(user);
-            user.setTravelOptions(userTravelOptions);
         }
 
         /* Salary */
         Salary userSalary = user.getSalary();
-
         if (userSalary != null) {
             /* User specified salary */
             userSalary.setUser(user);
-            user.setSalary(userSalary);
         }
 
         /* Mailing preferences */
         MailingPreference userMailingPreference = user.getMailingPreference();
-
-        if (userMailingPreference.isUseTelegram() && user.getTelegram() == null) {
+        if (userMailingPreference.isUseTelegram() && user.getTelegramSettings() == null) {
             // User is trying to use telegram for sending notifications
             // without providing telegram
             throw new TelegramIsNotDefinedException();
@@ -254,7 +269,7 @@ public class UserService implements UserDetailsService {
     public User retrieveAuthenticatedUser() {
         if (isUserAuthenticated()) {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
-            return userRepository.findByUsername(username);
+            return userRepository.findByUsername(username).orElse(null);
         } else {
             // User is not authenticated
             return null;
@@ -273,7 +288,7 @@ public class UserService implements UserDetailsService {
     }
 
     public void refreshUser(User user) throws UserNotFoundException {
-        if (userRepository.findByUsername(user.getUsername()) == null) {
+        if (userRepository.findByUsername(user.getUsername()).isEmpty()) {
             // No such user in the database
             throw new UserNotFoundException();
         }
@@ -291,7 +306,7 @@ public class UserService implements UserDetailsService {
 
         // Checking if user exists in the database
         String username = user.getUsername();
-        if (userRepository.findByUsername(username) == null) {
+        if (userRepository.findByUsername(username).isEmpty()) {
             // No such user in the database
             logger.info(String.format("Attempt to save vacancy to a non-existing user %s is registered", username));
         }
@@ -346,10 +361,51 @@ public class UserService implements UserDetailsService {
         }
 
         userRepository.save(user);
-        logger.info(String.format(user.getLastJobRequestVacancies().size() > 0?
+        logger.info(String.format(user.getLastJobRequestVacancies().size() > 0 ?
                 "User %s is saved after adding vacancies" :
                 "No new vacancies are found for user %s",
                 user.getUsername()));
     }
 
+    /**
+     * Finds a user by a username
+     * @param username username (e-mail) by which the search is performed
+     * @return found user if one is found, otherwise - null
+     */
+    public User findUserByUsername(@NotNull String username) {
+        Optional<User> user = userRepository.findByUsername(username);
+        return user.orElse(null);
+    }
+
+    /**
+     * Finds a user from the database by active telegram (with defined
+     * chat id)
+     * @param telegram telegram identifier
+     * @return user if user with such telegram is found, null if there's
+     * no user with such telegram in the database
+     */
+    public User findUserByActiveTelegram(@NotNull String telegram) {
+        Optional<User> user = userRepository.findByActiveTelegram(telegram);
+        return user.orElse(null);
+    }
+
+
+    /**
+     * Finds users from the database by telegram
+     * @param telegram telegram to find users by
+     * @return list of users with specified telegram
+     */
+    public List<User> findUsersByTelegram(@NotNull String telegram)  {
+        return userRepository.findByTelegram(telegram);
+    }
+
+    /**
+     * Finds user from the database by chat id
+     * @param chatId chat id by which user is found
+     * @return user with specified chat id, if there's no such user returns null
+     */
+    public User findUserByChatId(@NotNull long chatId) {
+        Optional<User> user = userRepository.findByChatId(chatId);
+        return user.orElse(null);
+    }
 }

@@ -2,6 +2,7 @@ package com.nikshcherbakov.vacanciesfinder.services;
 
 import com.nikshcherbakov.vacanciesfinder.models.Address;
 import com.nikshcherbakov.vacanciesfinder.models.VacancyPreview;
+import com.nikshcherbakov.vacanciesfinder.utils.HighlightType;
 import com.nikshcherbakov.vacanciesfinder.utils.VacancyTableRow;
 import com.sun.istack.NotNull;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,11 +41,11 @@ public class VacanciesService {
         for (int i = fromInd; i < toInd; i++) {
             VacancyPreview vacancy = vacancies.get(i);
             Address vacancyAddress = vacancy.getAddress();
-            String addressString = null;
+            String addressString = vacancy.getArea().getName();
             if (vacancyAddress != null) {
-                addressString = vacancyAddress.asString() != null ?
-                        vacancyAddress.asString() :
-                        vacancy.getArea().getName();
+                if (vacancyAddress.asString() != null) {
+                    addressString = vacancyAddress.asString();
+                }
             }
 
             String vacancyResponsibility = vacancy.getSnippet().getResponsibility();
@@ -81,6 +82,46 @@ public class VacanciesService {
             return 0;
         }
         return vacancies.size() / perPage + (vacancies.size() % perPage > 0? 1 : 0);
+    }
+
+
+    /**
+     * Generates vacancies list description to be used as string
+     * @param vacancies list of vacancies for which description is generated
+     * @param withMarkdown whether to use HTML-markdown in the description or not
+     * @return string description of specified list of vacancies, if list of
+     * vacancies is empty returns empty string ("")
+     */
+    public String generateVacanciesListMessage(@NotNull List<VacancyPreview> vacancies, HighlightType highlightType) {
+        StringBuilder builder = new StringBuilder();
+        boolean withMarkdown = false;
+        switch (highlightType) {
+            case HTML_EMAIL:
+                builder.append("<ol>");
+
+                for (VacancyPreview vacancy : vacancies) {
+                    String vacancyDescription = String.format("\n<li>%s</li>", vacancy.getDescription(true));
+                    builder.append(vacancyDescription);
+                }
+
+                builder.append("\n</ol>");
+                return vacancies.size() > 0 ? builder.toString() : "";
+
+            case HTML_TELEGRAM:
+                withMarkdown = true;
+                break;
+            case NONE:
+                withMarkdown = false;
+                break;
+        }
+
+        int number = 1;
+        for (VacancyPreview vacancy : vacancies) {
+            String vacancyDescription = String.format("%d. %s\n", number, vacancy.getDescription(withMarkdown));
+            builder.append(vacancyDescription);
+            number++;
+        }
+        return builder.substring(0, builder.length() - 1);
     }
 
 }

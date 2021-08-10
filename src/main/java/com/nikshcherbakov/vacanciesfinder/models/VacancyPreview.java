@@ -201,6 +201,65 @@ public class VacancyPreview {
         return formatter.parse(dateWithoutTimezone);
     }
 
+    /**
+     * Generates string description of a vacancy in the following
+     * format:
+     *
+     * "VacancyName - VacancyEmployer, VacancyAddress (VacancySalary, optional) - VacancyUrl"
+     *
+     * @return description of a vacancy
+     */
+    public String getDescription() {
+        return getDescription(false);
+    }
+
+
+    /**
+     * Generates string description of a vacancy in the following
+     * format:
+     *
+     * "VacancyName - VacancyEmployer, VacancyAddress (VacancySalary, optional) - VacancyUrl"
+     *
+     * @param withMarkdown whether insert markdown or not
+     * @return vacancy description with or without markdown
+     */
+    public String getDescription(boolean withMarkdown) {
+        String vacancyName = withMarkdown ? String.format("<b>%s</b>", name) : name;
+        String employerName = withMarkdown ? String.format("<i>%s</i>", vacancyEmployer.getName()) :
+                vacancyEmployer.getName();
+
+        String addressString = vacancyArea.getName();
+        if (address != null) {
+            if (address.asString() != null) {
+                addressString = address.asString();
+            }
+        }
+
+        String salaryString = null;
+        if (salary != null) {
+            String from = salary.getFrom() != null ? salary.getFrom().toString() : null;
+            String to = salary.getTo() != null ? salary.getTo().toString() : null;
+            String currency = salary.getCurrency();
+
+            from = withMarkdown && from != null ? String.format("<b>%s</b>", from) : from;
+            to = withMarkdown && to != null ? String.format("<b>%s</b>", to) : to;
+            currency = withMarkdown ? String.format("<b>%s</b>", currency) : currency;
+
+            if (from != null && to != null) {
+                salaryString = String.format("от %s до %s %s", from, to, currency);
+            }
+            if (from != null && to == null) {
+                salaryString = String.format("от %s %s", from, currency);
+            }
+            if (from == null && to != null) {
+                salaryString = String.format("до %s %s", to, currency);
+            }
+        }
+
+        return String.format("%s - %s, %s", vacancyName, employerName, addressString) +
+                (salaryString != null ? String.format(" (%s)", salaryString) : "") + String.format(" - %s", url);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

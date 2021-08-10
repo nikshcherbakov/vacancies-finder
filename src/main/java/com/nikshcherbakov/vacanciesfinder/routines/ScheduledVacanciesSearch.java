@@ -3,6 +3,7 @@ package com.nikshcherbakov.vacanciesfinder.routines;
 import com.nikshcherbakov.vacanciesfinder.models.User;
 import com.nikshcherbakov.vacanciesfinder.models.VacancyPreview;
 import com.nikshcherbakov.vacanciesfinder.services.AsyncJobSearchService;
+import com.nikshcherbakov.vacanciesfinder.services.MailingService;
 import com.nikshcherbakov.vacanciesfinder.services.UserService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -16,14 +17,16 @@ public class ScheduledVacanciesSearch {
 
     private final AsyncJobSearchService asyncJobSearchService;
     private final UserService userService;
+    private final MailingService mailingService;
 
-    public ScheduledVacanciesSearch(AsyncJobSearchService asyncJobSearchService, UserService userService) {
+    public ScheduledVacanciesSearch(AsyncJobSearchService asyncJobSearchService, UserService userService,
+                                    MailingService mailingService) {
         this.asyncJobSearchService = asyncJobSearchService;
         this.userService = userService;
+        this.mailingService = mailingService;
     }
 
-    @Scheduled(fixedDelay = 120000) // TODO change to cron from app.props
-//    @Transactional TODO GENERAL ПОДУМАТЬ НАД Transactional
+    @Scheduled(cron = "0 0 10 * * ?")
     public void addNewVacanciesToAllActiveUsers() {
         List<User> users = userService.getAllActiveUsers();
         List<CompletableFuture<Void>> futures = new ArrayList<>();
@@ -41,5 +44,7 @@ public class ScheduledVacanciesSearch {
             userService.addFoundVacanciesAndSave(user);
         }
 
+        // Mailing found vacancies to all active users (runs async function)
+        mailingService.sendFoundVacanciesToAllUsers(users);
     }
 }
