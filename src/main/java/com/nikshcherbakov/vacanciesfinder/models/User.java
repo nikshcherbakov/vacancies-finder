@@ -52,7 +52,6 @@ public class User implements UserDetails {
     private String searchFilters;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @NotNull
     private Date registrationDate;
 
     @Temporal(TemporalType.TIMESTAMP)

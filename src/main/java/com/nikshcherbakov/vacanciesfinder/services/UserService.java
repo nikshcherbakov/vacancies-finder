@@ -74,7 +74,7 @@ public class UserService implements UserDetailsService {
 
     /**
      * Method to save new user that is not in the database yet
-     * @param user a user with specified at least username and password
+     * @param user a new user with specified at least username and password
      * @return true if user is saved successfully otherwise - false
      */
     public boolean saveNewUser(@NotNull User user) {
@@ -100,7 +100,7 @@ public class UserService implements UserDetailsService {
         }
 
         try {
-            bindUserDataToRecordsFromDb(user);
+            saveUser(user);
         } catch (TelegramIsNotDefinedException e) {
             e.printStackTrace();
         }
@@ -196,55 +196,28 @@ public class UserService implements UserDetailsService {
             userFromDb.setTravelOptions(travelOptions);
         }
 
-        bindUserDataToRecordsFromDb(userFromDb);
-
-        userRepository.save(userFromDb);
+        saveUser(userFromDb);
         return true;
     }
 
-    // TODO MAIN_PRIORITY заменить методом saveUser с аннотацией @Transactional
-    // TODO GENERAL Исправить связку объектов в соответствии с методом addFoundVacancies
+    /**
+     * Saves user to a database associating user's data with existing
+     * records in database
+     * @param user a user that needs to be saved
+     * @throws TelegramIsNotDefinedException if user wants to use telegram
+     * without providing it
+     */
     @Transactional
-    public void bindUserDataToRecordsFromDb(@NotNull User user) throws TelegramIsNotDefinedException {
+    public void saveUser(@NotNull User user) throws TelegramIsNotDefinedException {
         /* Adding corresponding records from db to the user */
 
         /* Roles */
         Set<Role> userRolesFromDb = new HashSet<>();
-        for (Role userRole: user.getRoles()) {
-            String roleName = userRole.getName();
-            Role roleFromDb = roleRepository.findByName(roleName);
-
-            if (roleFromDb == null) {
-                // No such role in the db - adding one
-                roleRepository.save(userRole);
-
-                // Retrieving saved role from db
-                roleFromDb = roleRepository.findByName(roleName);
-            }
-
-            if (roleFromDb.getUsers() == null) {
-                roleFromDb.setUsers(new HashSet<>());
-            }
-
-            roleFromDb.getUsers().add(user);
-            userRolesFromDb.add(roleFromDb);
+        for (Role role : user.getRoles()) {
+            Optional<Role> roleFromDb = roleRepository.findByName(role.getName());
+            roleFromDb.ifPresentOrElse(userRolesFromDb::add, () -> userRolesFromDb.add(roleRepository.save(role)));
         }
-        // User's roles = objects retrieved from db
         user.setRoles(userRolesFromDb);
-
-        /* Travel options */
-        TravelOptions userTravelOptions = user.getTravelOptions();
-        if (userTravelOptions != null) {
-            /* User specified travel options */
-            userTravelOptions.setUser(user);
-        }
-
-        /* Salary */
-        Salary userSalary = user.getSalary();
-        if (userSalary != null) {
-            /* User specified salary */
-            userSalary.setUser(user);
-        }
 
         /* Mailing preferences */
         MailingPreference userMailingPreference = user.getMailingPreference();
@@ -254,22 +227,29 @@ public class UserService implements UserDetailsService {
             throw new TelegramIsNotDefinedException();
         }
 
-        MailingPreference mailingPreferenceFromDb =
+        Optional<MailingPreference> mailingPreferenceFromDb =
                 mailingPreferenceRepository.findMailingPreferenceByUseEmailAndUseTelegram(
                         userMailingPreference.isUseEmail(), userMailingPreference.isUseTelegram());
 
-        if (mailingPreferenceFromDb == null) {
-            // There's no such record in the db - adding one
-            user.setMailingPreference(userMailingPreference);
-        } else {
-            // User's mailing preferences = object retrieved from db
-            if (mailingPreferenceFromDb.getUsers() == null) {
-                mailingPreferenceFromDb.setUsers(new HashSet<>());
-            }
-            mailingPreferenceFromDb.getUsers().add(user);
-            user.setMailingPreference(mailingPreferenceFromDb);
+        mailingPreferenceFromDb.ifPresentOrElse(user::setMailingPreference,
+                () -> user.setMailingPreference(userMailingPreference));
+
+        /* Travel options */
+        TravelOptions userTravelOptions = user.getTravelOptions();
+        if (userTravelOptions != null) {
+            // User specified travel options
+            userTravelOptions.setUser(user);
         }
 
+        /* Salary */
+        Salary userSalary = user.getSalary();
+        if (userSalary != null) {
+            // User specified salary
+            userSalary.setUser(user);
+        }
+
+        // Saving user to the database
+        userRepository.save(user);
     }
 
     public boolean isUserAuthenticated() {
@@ -306,12 +286,12 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
     }
 
-    // TODO GENERAL Подумать над тем, чтобы сделать метод transactional
     /**
      * Adds new found vacancies to a user and saves the database. If a user does
      * not exist in the database the method will log out a corresponding message
      * @param user a user to who found vacancies will be added
      */
+    @Transactional
     public void addFoundVacanciesAndSave(User user) {
         List<VacancyPreview> vacancies = user.getLastJobRequestVacancies();
 

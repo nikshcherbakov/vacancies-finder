@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import javax.validation.Valid;
 import java.util.Collections;
+import java.util.Optional;
 
 @Controller
 public class SignUpController {
@@ -43,8 +44,7 @@ public class SignUpController {
     }
 
     @PostMapping(value = "/signup")
-    public String handleSignUp(@Valid User user, BindingResult bindingResult, Model model)
-            throws TelegramIsNotDefinedException {
+    public String handleSignUp(@Valid User user, BindingResult bindingResult, Model model) {
 
         // Checking if a form does not contain errors
         if (bindingResult.hasErrors()) {
@@ -85,10 +85,11 @@ public class SignUpController {
             return "403";
         }
 
-        User user = userRepository.findByUsername(username).orElse(null);
+        Optional<User> userFromDb = userRepository.findByUsername(username);
 
-        if (user != null) {
+        if (userFromDb.isPresent()) {
             // User exists
+            User user = userFromDb.get();
             if (user.getPassword().equals(hash) && !user.isEnabled()) {
                 user.setEnabled(true);
                 userRepository.save(user);

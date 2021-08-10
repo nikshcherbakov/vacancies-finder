@@ -9,7 +9,7 @@ public class MailingPreference {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Short id;
 
     private boolean useEmail;
     private boolean useTelegram;
@@ -25,11 +25,11 @@ public class MailingPreference {
         this.useTelegram = useTelegram;
     }
 
-    public Long getId() {
+    public Short getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Short id) {
         this.id = id;
     }
 
