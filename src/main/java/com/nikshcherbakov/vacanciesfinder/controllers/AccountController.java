@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
 
-// TODO GLOBAL подумать о добавлении частоты рассылки и, возможно, других параметров
 @Controller
 public class AccountController {
 

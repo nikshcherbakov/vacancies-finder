@@ -66,15 +66,14 @@ public class HeadHunterService implements IJobSearchService {
      */
     @Override
     public List<VacancyPreview> searchNextByUser(User user) throws IOException, GoogleMapsInvalidApiKeyException {
-        // Finding date of last job request
-        if (user.getLastJobRequestDate() == null) {
-            user.setLastJobRequestDate(new Date());
-            return new ArrayList<>();
-        }
+        // Defining search start date
+        Date searchSince = user.getLastJobRequestDate() != null ?
+                user.getLastJobRequestDate() :
+                user.getRegistrationDate();
 
         // Searching vacancies since the date
+        List<VacancyPreview> newVacancies = searchVacanciesByUserSinceDate(user, searchSince);
         Date newJobRequestDate = new Date();
-        List<VacancyPreview> newVacancies = searchVacanciesByUserSinceDate(user, user.getLastJobRequestDate());
 
         // Sort vacancies by date
         newVacancies.sort((o1, o2) -> {

@@ -19,6 +19,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 
@@ -58,7 +59,6 @@ public class UserService implements UserDetailsService {
         this.areaRepository = areaRepository;
     }
 
-    // TODO GENERAL подумать об удалении одного из методов (loadUserByUsername и UserRepository.loadByUsername)
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User userInDatabase = userRepository.findByUsername("username").orElse(null);
@@ -74,8 +74,10 @@ public class UserService implements UserDetailsService {
 
     /**
      * Method to save new user that is not in the database yet
+     * @param user a user with specified at least username and password
+     * @return true if user is saved successfully otherwise - false
      */
-    public boolean saveNewUser(@NotNull User user) throws TelegramIsNotDefinedException {
+    public boolean saveNewUser(@NotNull User user) {
 
         // Checking if a user exists in the database
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
@@ -89,11 +91,19 @@ public class UserService implements UserDetailsService {
             user.getRoles().add(new Role("ROLE_USER"));
         }
 
+        if (user.getRegistrationDate() == null) {
+            user.setRegistrationDate(new Date());
+        }
+
         if (user.getMailingPreference() == null) {
             user.setMailingPreference(new MailingPreference(true, false));
         }
 
-        bindUserDataToRecordsFromDb(user);
+        try {
+            bindUserDataToRecordsFromDb(user);
+        } catch (TelegramIsNotDefinedException e) {
+            e.printStackTrace();
+        }
 
         // Save user with encoded password
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
@@ -101,7 +111,6 @@ public class UserService implements UserDetailsService {
         return true;
     }
 
-    // TODO GENERAL подумать над тем, чтобы сделать метод transactional
     public boolean refreshUserDataWithUserAccountForm(@NotNull UserAccountForm form)
             throws TelegramIsNotDefinedException, TelegramIsTakenException {
 
@@ -193,8 +202,10 @@ public class UserService implements UserDetailsService {
         return true;
     }
 
+    // TODO MAIN_PRIORITY заменить методом saveUser с аннотацией @Transactional
     // TODO GENERAL Исправить связку объектов в соответствии с методом addFoundVacancies
-    private void bindUserDataToRecordsFromDb(@NotNull User user) throws TelegramIsNotDefinedException {
+    @Transactional
+    public void bindUserDataToRecordsFromDb(@NotNull User user) throws TelegramIsNotDefinedException {
         /* Adding corresponding records from db to the user */
 
         /* Roles */

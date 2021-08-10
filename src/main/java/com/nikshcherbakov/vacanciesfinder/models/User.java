@@ -52,6 +52,10 @@ public class User implements UserDetails {
     private String searchFilters;
 
     @Temporal(TemporalType.TIMESTAMP)
+    @NotNull
+    private Date registrationDate;
+
+    @Temporal(TemporalType.TIMESTAMP)
     private Date lastJobRequestDate;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
@@ -189,6 +193,14 @@ public class User implements UserDetails {
 
     public void setSearchFilters(String searchFilters) {
         this.searchFilters = searchFilters;
+    }
+
+    public Date getRegistrationDate() {
+        return registrationDate;
+    }
+
+    public void setRegistrationDate(Date registrationDate) {
+        this.registrationDate = registrationDate;
     }
 
     public Date getLastJobRequestDate() {

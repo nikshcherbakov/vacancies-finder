@@ -87,7 +87,7 @@ public class Address {
     private List<MetroStation> metroStations;
 
     @OneToMany(mappedBy = "address", orphanRemoval = true)
-    private Set<VacancyPreview> vacancyPreviews; // TODO GENERAL сделать добавление адресу vacancy previews
+    private Set<VacancyPreview> vacancyPreviews;
 
     public Address() {
         this.location = new Location();
