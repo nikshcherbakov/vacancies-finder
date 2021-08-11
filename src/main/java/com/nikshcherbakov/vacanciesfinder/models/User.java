@@ -66,6 +66,10 @@ public class User implements UserDetails {
     @Transient
     private List<VacancyPreview> lastJobRequestVacancies;
 
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @Column(name = "feedback")
+    private List<Feedback> feedbackList;
+
     public User() {
     }
 
@@ -283,6 +287,21 @@ public class User implements UserDetails {
 
     public void setLastJobRequestVacancies(List<VacancyPreview> lastJobRequestVacancies) {
         this.lastJobRequestVacancies = lastJobRequestVacancies;
+    }
+
+    public List<Feedback> getFeedbackList() {
+        return feedbackList;
+    }
+
+    public void setFeedbackList(List<Feedback> feedbackList) {
+        this.feedbackList = feedbackList;
+    }
+
+    public void addFeedback(Feedback feedback) {
+        if (feedbackList == null) {
+            feedbackList = new ArrayList<>();
+        }
+        feedbackList.add(feedback);
     }
 
     /**
