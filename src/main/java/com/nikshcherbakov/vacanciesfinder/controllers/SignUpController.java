@@ -6,7 +6,6 @@ import com.nikshcherbakov.vacanciesfinder.models.User;
 import com.nikshcherbakov.vacanciesfinder.repositories.UserRepository;
 import com.nikshcherbakov.vacanciesfinder.services.EmailService;
 import com.nikshcherbakov.vacanciesfinder.services.UserService;
-import com.nikshcherbakov.vacanciesfinder.utils.TelegramIsNotDefinedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -82,7 +81,7 @@ public class SignUpController {
                               @RequestParam(name = "hashval") String hash) {
         // Handling incorrect URLs
         if (username == null || hash == null) {
-            return "403";
+            return "404";
         }
 
         Optional<User> userFromDb = userRepository.findByUsername(username);
@@ -95,11 +94,11 @@ public class SignUpController {
                 userRepository.save(user);
                 return "successful-confirmation";
             } else {
-                return "403";
+                return "404";
             }
         } else {
             // No such user in the database
-            return "403";
+            return "404";
         }
 
     }
