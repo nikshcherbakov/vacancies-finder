@@ -4,12 +4,9 @@ import com.nikshcherbakov.vacanciesfinder.VacanciesFinderApplication;
 import com.nikshcherbakov.vacanciesfinder.models.*;
 import com.nikshcherbakov.vacanciesfinder.repositories.*;
 import com.nikshcherbakov.vacanciesfinder.utils.TelegramIsNotDefinedException;
-import com.nikshcherbakov.vacanciesfinder.utils.TelegramIsTakenException;
-import com.nikshcherbakov.vacanciesfinder.utils.UserAccountForm;
 import com.nikshcherbakov.vacanciesfinder.utils.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,12 +23,6 @@ import java.util.*;
 
 @Service
 public class UserService implements UserDetailsService {
-
-    @Value("${app.maps.defaults.latitude}")
-    private double defaultLatitude;
-
-    @Value("${app.maps.defaults.longitude}")
-    private double defaultLongitude;
 
     private static final Logger logger = LoggerFactory.getLogger(VacanciesFinderApplication.class);
 
@@ -111,95 +102,6 @@ public class UserService implements UserDetailsService {
         return true;
     }
 
-    public boolean refreshUserDataWithUserAccountForm(@NotNull UserAccountForm form)
-            throws TelegramIsNotDefinedException, TelegramIsTakenException {
-
-        User userFromDb = userRepository.findByUsername(form.getUsername()).orElse(null);
-
-        if (userFromDb == null) {
-            // No such user in the database
-            return false;
-        }
-
-        /* Saving data from UserAccountForm */
-        MailingPreference mailingPreference = new MailingPreference(form.isUseEmail(),
-                form.isUseTelegram());
-        String searchFilters = form.getSearchFilters().equals("") ? null : form.getSearchFilters();
-        String telegram = form.getTelegram().equals("") ? null : form.getTelegram();
-
-        // Checking if a telegram is taken already by another user
-        if (telegram != null) {
-            User userWithActiveTelegram = findUserByActiveTelegram(telegram);
-            if (userWithActiveTelegram != null && !userFromDb.equals(userWithActiveTelegram)) {
-                throw new TelegramIsTakenException();
-            }
-        }
-
-        TravelOptions travelOptions = null;
-        if (userFromDb.getTravelOptions() == null) {
-            // Save user's location only if one changed default location or specified travel time
-            boolean userChangedDefaultLocation = form.getLatitude() != defaultLatitude ||
-                    form.getLongitude() != defaultLongitude;
-            boolean userSpecifiedTravelTime = form.getTravelTimeInMins() != 0;
-
-            if (userChangedDefaultLocation || userSpecifiedTravelTime) {
-                travelOptions = new TravelOptions(new Location(form.getLatitude(), form.getLongitude()),
-                        form.getTravelTimeInMins(), form.getTravelBy());
-            }
-        } else {
-            // Just bind new travel options to current user
-            travelOptions = new TravelOptions(new Location(form.getLatitude(), form.getLongitude()),
-                    form.getTravelTimeInMins(), form.getTravelBy());
-        }
-
-        Salary salary = null;
-        if (form.getSalaryValue() != null) {
-            salary = new Salary(form.getSalaryValue(), form.getCurrency());
-        }
-
-        TelegramSettings telegramSettings = null;
-        if (telegram != null) {
-            telegramSettings = new TelegramSettings(telegram);
-        }
-
-        /* Adding changed fields to a user */
-        userFromDb.setSearchFilters(searchFilters);
-        userFromDb.setMailingPreference(mailingPreference);
-
-        if (userFromDb.getTelegramSettings() != null) {
-            if (!userFromDb.getTelegramSettings().getTelegram().equals(telegram)) {
-                // User changed telegram - deleting one cause it's OneToOne relationship
-                userFromDb.setTelegramSettings(telegram != null ? new TelegramSettings(telegram) : null);
-            }
-        } else {
-            // Nothing to delete - adding new telegram settings to a user
-            userFromDb.setTelegramSettings(telegramSettings);
-        }
-
-        if (userFromDb.getSalary() != null) {
-            if (!userFromDb.getSalary().equals(salary)) {
-                // User changed salary - deleting one cause it's OneToOne relationship
-                userFromDb.setSalary(salary);
-            }
-        } else {
-            // There's nothing to delete - just adding new salary to a user
-            userFromDb.setSalary(salary);
-        }
-
-        if (userFromDb.getTravelOptions() != null) {
-            if (!userFromDb.getTravelOptions().equals(travelOptions)) {
-                // User changed travel options - deleting it cause it's OneToOne relationship
-                userFromDb.setTravelOptions(travelOptions);
-            }
-        } else {
-            // There's nothing to delete - just adding new travel options to a user
-            userFromDb.setTravelOptions(travelOptions);
-        }
-
-        saveUser(userFromDb);
-        return true;
-    }
-
     /**
      * Saves user to a database associating user's data with existing
      * records in database
@@ -207,7 +109,6 @@ public class UserService implements UserDetailsService {
      * @throws TelegramIsNotDefinedException if user wants to use telegram
      * without providing it
      */
-    @Transactional
     public void saveUser(@NotNull User user) throws TelegramIsNotDefinedException {
         /* Adding corresponding records from db to the user */
 
@@ -249,7 +150,23 @@ public class UserService implements UserDetailsService {
         }
 
         // Saving user to the database
-        userRepository.save(user);
+        saveBondedUser(user);
+    }
+
+    /**
+     * Safely stores a user to the database after binding. By binding it is meant
+     * that a user is associated to all records from the database that should not
+     * be rewritten to the database (e.g. user role)
+     * @param user a user that needs to be saved or updated
+     */
+    @Transactional
+    public void saveBondedUser(@NotNull User user) {
+        try {
+            userRepository.save(user);
+        } catch (Exception e) {
+            logger.error(String.format("Error occurred while saving user %s to the database", user.getUsername()));
+            e.printStackTrace();
+        }
     }
 
     public boolean isUserAuthenticated() {
@@ -276,14 +193,6 @@ public class UserService implements UserDetailsService {
             }
         }
         return activeUsers;
-    }
-
-    public void refreshUser(User user) throws UserNotFoundException {
-        if (userRepository.findByUsername(user.getUsername()).isEmpty()) {
-            // No such user in the database
-            throw new UserNotFoundException();
-        }
-        userRepository.save(user);
     }
 
     /**
@@ -379,7 +288,6 @@ public class UserService implements UserDetailsService {
         Optional<User> user = userRepository.findByActiveTelegram(telegram);
         return user.orElse(null);
     }
-
 
     /**
      * Finds users from the database by telegram
