@@ -8,8 +8,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.*;
 
-// TODO Разбраться как работает BCryptEncoder, установить корректный максимальный размер для пароля
-
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {
@@ -25,7 +23,7 @@ public class User implements UserDetails {
 
     @Column(nullable = false)
     @NotNull
-    @Size(min = 6, max = 500)
+    @Size(min = 6, max = 72)
     private String password;
 
     @Transient

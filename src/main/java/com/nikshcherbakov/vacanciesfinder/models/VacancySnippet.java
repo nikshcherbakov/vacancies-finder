@@ -5,7 +5,6 @@ import com.sun.istack.NotNull;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
-import java.util.Set;
 
 @Entity
 public class VacancySnippet {

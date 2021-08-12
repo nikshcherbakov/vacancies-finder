@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
-    <title>Please sign up</title>
+    <title>Sign up - Vacancies Finder</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
     <link href="https://getbootstrap.com/docs/4.0/examples/signin/signin.css" rel="stylesheet" crossorigin="anonymous">
     <link rel="icon" type="image/ico" th:href="@{../static/favicon.ico}">
@@ -13,12 +13,12 @@
 <body wfd-invisible="true">
 <div class="container">
     <form class="form-signin" method="post" th:action="@{/signup}" th:object="${user}">
-        <h2 class="form-signin-heading">Please sign up</h2>
+        <h2 class="form-signin-heading">Регистрация</h2>
         <div th:if="${userExists}" class="alert alert-danger" role="alert">
-            User with username  "<span th:text="${user.username}"></span>" already exists!
+            Пользователь с именем "<span th:text="${user.username}"></span>" уже существует!
         </div>
         <div th:if="${passwordDoesNotMatchPasswordConfirm}" class="alert alert-danger" role="alert">
-            Password does not match password confirmation!
+            Пароль не соответствует подтверждению пороля!
         </div>
         <p>
             <label for="username" class="sr-only">E-mail</label>
@@ -27,20 +27,20 @@
                    required="" autofocus="">
         </p>
         <div th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="alert alert-danger" role="alert">
-            Username error
+            Ошибка в имени пользователя
         </div>
         <p>
             <label for="password" class="sr-only">Password</label>
             <input type="password" th:field="*{password}" id="password" name="password" class="form-control" placeholder="Password" required="">
         </p>
         <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="alert alert-danger" role="alert">
-            Password error
+            Ошибка в пароле
         </div>
         <p>
             <label for="passwordConfirm" class="sr-only">Password Confirm</label>
             <input type="password" th:field="*{passwordConfirm}" id="passwordConfirm" name="password" class="form-control" placeholder="Password Confirm" required="">
         </p>
-        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign up</button>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Зарегистрироваться</button>
         <p style="padding-top: 50px;">
             <a href="/login">У меня уже есть аккаунт</a>
         </p>

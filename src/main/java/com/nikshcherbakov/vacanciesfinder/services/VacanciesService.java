@@ -88,7 +88,9 @@ public class VacanciesService {
     /**
      * Generates vacancies list description to be used as string
      * @param vacancies list of vacancies for which description is generated
-     * @param withMarkdown whether to use HTML-markdown in the description or not
+     * @param highlightType type of text highlighting. Possible values:
+     * {@link HighlightType#HTML_TELEGRAM}, {@link HighlightType#HTML_EMAIL},
+     * {@link HighlightType#NONE}
      * @return string description of specified list of vacancies, if list of
      * vacancies is empty returns empty string ("")
      */
@@ -121,7 +123,7 @@ public class VacanciesService {
             builder.append(vacancyDescription);
             number++;
         }
-        return builder.substring(0, builder.length() - 1);
+        return builder.length() > 0 ? builder.substring(0, builder.length() - 1) : "";
     }
 
 }

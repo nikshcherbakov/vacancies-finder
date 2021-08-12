@@ -195,6 +195,16 @@
             </div>
         </div>
 
+        <!-- Logout -->
+        <div class="form-group row">
+            <label for="logout" class="col-sm-2 col-form-label">Выход из аккаунта</label>
+            <div class="col-sm-10">
+                <div id="logout" class="form-control-plaintext">
+                    <a th:href="@{/logout}" th:text="'Выйти из аккаунта ' + ${userForm.username}"></a>
+                </div>
+            </div>
+        </div>
+
         <!--Submit button-->
         <button type="submit" class="btn btn-primary" id="submitButton" disabled>
             Сохранить изменения

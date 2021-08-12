@@ -4,7 +4,6 @@ import com.nikshcherbakov.vacanciesfinder.VacanciesFinderApplication;
 import com.nikshcherbakov.vacanciesfinder.models.*;
 import com.nikshcherbakov.vacanciesfinder.repositories.*;
 import com.nikshcherbakov.vacanciesfinder.utils.TelegramIsNotDefinedException;
-import com.nikshcherbakov.vacanciesfinder.utils.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;

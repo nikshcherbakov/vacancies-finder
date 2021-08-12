@@ -8,7 +8,6 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -60,12 +59,11 @@ public class HeadHunterService implements IJobSearchService {
      *
      * @param user a user by which vacancies are searched up
      * @return list of vacancy previews that were found for a user by user constraints
-     * @throws IOException in case there occurred a problem while getting stream of bytes from api.hh.ru
      * @throws GoogleMapsInvalidApiKeyException if a GoogleMapsAPI key defined in
      * {@code application.properties} is not valid.
      */
     @Override
-    public List<VacancyPreview> searchNextByUser(User user) throws IOException, GoogleMapsInvalidApiKeyException {
+    public List<VacancyPreview> searchNextByUser(User user) throws GoogleMapsInvalidApiKeyException {
         // Defining search start date
         Date searchSince = user.getLastJobRequestDate() != null ?
                 user.getLastJobRequestDate() :
@@ -97,12 +95,11 @@ public class HeadHunterService implements IJobSearchService {
      * @param user a user by which vacancies are searched up
      * @param date date since which the vacancies are searched up
      * @return list of vacancy previews that were found for a user by user constraints
-     * @throws IOException in case there occurred a problem while getting stream of bytes from api.hh.ru
      * @throws GoogleMapsInvalidApiKeyException if a GoogleMapsAPI key defined in
      * {@code application.properties} is not valid or does not allow to obtain information via api.
      */
     public List<VacancyPreview> searchVacanciesByUserSinceDate(User user, Date date)
-            throws IOException, GoogleMapsInvalidApiKeyException {
+            throws GoogleMapsInvalidApiKeyException {
         Date dateSearchFrom = roundDateToClosestFiveMins(date);
         List<VacancyPreview> vacanciesSinceSearchFrom = loadVacanciesByUserConstraintsSinceDate(user, dateSearchFrom);
 
@@ -137,12 +134,11 @@ public class HeadHunterService implements IJobSearchService {
      * @param user a user by which vacancies are searched up
      * @param date date since which vacancies are loaded from hh.ru
      * @return list of vacancy previews that were found for a user by user constraints
-     * @throws IOException in case there occurred a problem while getting stream of bytes from api.hh.ru
      * @throws GoogleMapsInvalidApiKeyException if a GoogleMapsAPI key defined in
      * {@code application.properties} is not valid.
      */
     private List<VacancyPreview> loadVacanciesByUserConstraintsSinceDate(@NotNull User user, Date date)
-            throws IOException, GoogleMapsInvalidApiKeyException {
+            throws GoogleMapsInvalidApiKeyException {
 
         // If user specified nothing he gets nothing
         if (user.getSearchFilters() == null && user.getSalary() == null && user.getTravelOptions() == null) {

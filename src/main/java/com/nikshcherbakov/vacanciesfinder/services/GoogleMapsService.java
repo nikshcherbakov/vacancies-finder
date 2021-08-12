@@ -70,11 +70,4 @@ public class GoogleMapsService implements IMapsService {
         return restTemplate.getForObject(googleDirectionsApiUrl + urlParams, GoogleRouteRequest.class);
     }
 
-    public String getApiKey() {
-        return apiKey;
-    }
-
-    public void setApiKey(String apiKey) {
-        this.apiKey = apiKey;
-    }
 }

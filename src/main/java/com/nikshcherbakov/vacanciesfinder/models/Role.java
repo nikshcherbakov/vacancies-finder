@@ -35,6 +35,14 @@ public class Role implements GrantedAuthority {
         this.name = name;
     }
 
+    public Short getId() {
+        return id;
+    }
+
+    public void setId(Short id) {
+        this.id = id;
+    }
+
     public String getName() {
         return name;
     }

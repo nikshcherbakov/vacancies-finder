@@ -146,8 +146,8 @@ public class Bot extends TelegramLongPollingBot {
                             boolean telegramIsActivated = activateTelegram(messageText, messageFrom, chatId);
 
                             if (telegramIsActivated) {
-                                text = String.format("Ваш Telegram был успешно привязан к пользователю %s",
-                                        messageText);
+                                text = String.format("Ваш Telegram был успешно привязан к пользователю %s. " +
+                                                "Чтобы узнать, что я могу, используйте /help.", messageText);
                             } else {
                                 // User's telegram does not match user's username
                                 text = "Указанный e-mail не соответствует Вашему Telegram. Пожалуйста, " +
