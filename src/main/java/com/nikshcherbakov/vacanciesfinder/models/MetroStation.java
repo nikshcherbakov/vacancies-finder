@@ -4,27 +4,26 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sun.istack.Nullable;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
+import java.util.HashSet;
+import java.util.Set;
 
+@SuppressWarnings("unused")
 @Entity
 public class MetroStation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Short id;
 
     @JsonProperty("station_id")
     private String stationId;
 
-    @NotNull
     @JsonProperty("station_name")
     private String stationName;
 
-    @NotNull
     @JsonProperty("line_id")
     private Integer lineId;
 
-    @NotNull
     @JsonProperty("line_name")
     private String lineName;
 
@@ -36,31 +35,23 @@ public class MetroStation {
     @Nullable
     private Double lng;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @Nullable
     private Location stationLocation;
+
+    @OneToMany(mappedBy = "metro", fetch = FetchType.EAGER, orphanRemoval = true)
+    @Nullable
+    private Set<Address> addresses;
 
     public MetroStation() {
         this.stationLocation = new Location();
     }
 
-    public MetroStation(Integer id, String stationId, @NotNull String stationName, @NotNull Integer lineId,
-                        @NotNull String lineName, Double lat, Double lng) {
-        this.id = id;
-        this.stationId = stationId;
-        this.stationName = stationName;
-        this.lineId = lineId;
-        this.lineName = lineName;
-        this.lat = lat;
-        this.lng = lng;
-        this.stationLocation = new Location();
-    }
-
-    public Integer getId() {
+    public Short getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Short id) {
         this.id = id;
     }
 
@@ -120,5 +111,20 @@ public class MetroStation {
     public void setLng(Double lng) {
         this.lng = lng;
         this.stationLocation.setLongitude(lng);
+    }
+
+    public Set<Address> getAddresses() {
+        return addresses;
+    }
+
+    public void setAddresses(Set<Address> addresses) {
+        this.addresses = addresses;
+    }
+
+    public void addAddress(Address address) {
+        if (addresses == null) {
+            addresses = new HashSet<>();
+        }
+        addresses.add(address);
     }
 }

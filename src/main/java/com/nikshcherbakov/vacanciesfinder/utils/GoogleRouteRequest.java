@@ -2,6 +2,7 @@ package com.nikshcherbakov.vacanciesfinder.utils;
 
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class GoogleRouteRequest extends RouteRequest {
 
     private List<GoogleMapsRoute> routes;

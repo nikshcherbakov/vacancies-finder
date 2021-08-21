@@ -41,7 +41,11 @@ public class ScheduledVacanciesSearch {
 
         // Adding found vacancies to the users and saving to the database
         for (User user : users) {
-            userService.addFoundVacanciesAndSave(user);
+            // Adding found vacancies to a user
+            userService.addFoundVacancies(user);
+
+            // Saving user
+            userService.save(user);
         }
 
         // Mailing found vacancies to all active users (runs async function)

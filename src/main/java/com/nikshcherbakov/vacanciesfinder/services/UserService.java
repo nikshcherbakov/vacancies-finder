@@ -28,25 +28,27 @@ public class UserService implements UserDetailsService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final MailingPreferenceRepository mailingPreferenceRepository;
-    private final AddressRepository addressRepository;
-    private final VacancyEmployerRepository employerRepository;
-    private final VacancyPreviewRepository vacancyRepository;
-    private final VacancyAreaRepository areaRepository;
+
+    private final RoleService roleService;
+    private final MailingPreferenceService mailingPreferenceService;
+    private final AddressService addressService;
+    private final VacanciesService vacanciesService;
+    private final UserVacancyService userVacancyService;
+    private final VacancyEmployerService employerService;
+    private final VacancyAreaService areaService;
 
     public UserService(BCryptPasswordEncoder bCryptPasswordEncoder, UserRepository userRepository,
-                       RoleRepository roleRepository, MailingPreferenceRepository mailingPreferenceRepository,
-                       AddressRepository addressRepository, VacancyEmployerRepository employerRepository,
-                       VacancyPreviewRepository vacancyRepository, VacancyAreaRepository areaRepository) {
+                       RoleService roleService, MailingPreferenceService mailingPreferenceService, AddressService addressService,
+                       VacanciesService vacanciesService, UserVacancyService userVacancyService, VacancyEmployerService employerService, VacancyAreaService areaService) {
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-        this.mailingPreferenceRepository = mailingPreferenceRepository;
-        this.addressRepository = addressRepository;
-        this.employerRepository = employerRepository;
-        this.vacancyRepository = vacancyRepository;
-        this.areaRepository = areaRepository;
+        this.roleService = roleService;
+        this.mailingPreferenceService = mailingPreferenceService;
+        this.addressService = addressService;
+        this.vacanciesService = vacanciesService;
+        this.userVacancyService = userVacancyService;
+        this.employerService = employerService;
+        this.areaService = areaService;
     }
 
     @Override
@@ -114,42 +116,21 @@ public class UserService implements UserDetailsService {
         /* Roles */
         Set<Role> userRolesFromDb = new HashSet<>();
         for (Role role : user.getRoles()) {
-            Optional<Role> roleFromDb = roleRepository.findByName(role.getName());
-            roleFromDb.ifPresentOrElse(userRolesFromDb::add, () -> userRolesFromDb.add(roleRepository.save(role)));
+            Role roleFromDb = roleService.findByName(role.getName());
+            userRolesFromDb.add(Objects.requireNonNullElseGet(roleFromDb, () -> roleService.save(role)));
         }
         user.setRoles(userRolesFromDb);
 
         /* Mailing preferences */
         MailingPreference userMailingPreference = user.getMailingPreference();
-        if (userMailingPreference.isUseTelegram() && user.getTelegramSettings() == null) {
-            // User is trying to use telegram for sending notifications
-            // without providing telegram
-            throw new TelegramIsNotDefinedException();
-        }
-
-        Optional<MailingPreference> mailingPreferenceFromDb =
-                mailingPreferenceRepository.findMailingPreferenceByUseEmailAndUseTelegram(
-                        userMailingPreference.isUseEmail(), userMailingPreference.isUseTelegram());
-
-        mailingPreferenceFromDb.ifPresentOrElse(user::setMailingPreference,
-                () -> user.setMailingPreference(userMailingPreference));
-
-        /* Travel options */
-        TravelOptions userTravelOptions = user.getTravelOptions();
-        if (userTravelOptions != null) {
-            // User specified travel options
-            userTravelOptions.setUser(user);
-        }
-
-        /* Salary */
-        Salary userSalary = user.getSalary();
-        if (userSalary != null) {
-            // User specified salary
-            userSalary.setUser(user);
+        MailingPreference mailingPreferenceFromDb =
+                mailingPreferenceService.findByMailingPreference(userMailingPreference);
+        if (mailingPreferenceFromDb != null) {
+            user.setMailingPreference(mailingPreferenceFromDb);
         }
 
         // Saving user to the database
-        saveBondedUser(user);
+        save(user);
     }
 
     /**
@@ -158,8 +139,7 @@ public class UserService implements UserDetailsService {
      * be rewritten to the database (e.g. user role)
      * @param user a user that needs to be saved or updated
      */
-    @Transactional
-    public void saveBondedUser(@NotNull User user) {
+    public void save(@NotNull User user) {
         try {
             userRepository.save(user);
         } catch (Exception e) {
@@ -168,11 +148,19 @@ public class UserService implements UserDetailsService {
         }
     }
 
+    /**
+     * Checks whether a user authenticated
+     * @return true if a user is authenticated, false otherwise
+     */
     public boolean isUserAuthenticated() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return authentication != null && !(authentication instanceof AnonymousAuthenticationToken);
     }
 
+    /**
+     * Retrieves authenticated user from context
+     * @return user if one is authenticated, otherwise null
+     */
     public User retrieveAuthenticatedUser() {
         if (isUserAuthenticated()) {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -183,6 +171,11 @@ public class UserService implements UserDetailsService {
         }
     }
 
+    /**
+     * Returns list of active users from the database for which
+     * {@link User#isEnabled()} returns true
+     * @return list of active users
+     */
     public List<User> getAllActiveUsers() {
         List<User> users = userRepository.findAll();
         List<User> activeUsers = new ArrayList<>();
@@ -200,7 +193,7 @@ public class UserService implements UserDetailsService {
      * @param user a user to who found vacancies will be added
      */
     @Transactional
-    public void addFoundVacanciesAndSave(User user) {
+    public void addFoundVacancies(User user) {
         List<VacancyPreview> vacancies = user.getLastJobRequestVacancies();
 
         // Checking if user exists in the database
@@ -212,14 +205,13 @@ public class UserService implements UserDetailsService {
 
         for (VacancyPreview vacancy : vacancies) {
             /* Checking if a vacancy is already in the user's list of vacancies */
-            Optional<VacancyPreview> vacancyFromDb = vacancyRepository.findById(vacancy.getId());
-            if (vacancyFromDb.isPresent()) {
+            VacancyPreview vacancyFromDb = vacanciesService.findById(vacancy.getId());
+            if (vacancyFromDb != null) {
                 /* Vacancy exists already */
-                VacancyPreview existingVacancyFromDb = vacancyFromDb.get();
-                if (!existingVacancyFromDb.getUsers().contains(user)) {
+                if (!userVacancyService.existsById(
+                        new UserVacancyId(user.getId(), vacancyFromDb.getId()))) {
                     // User does not have this vacancy (needed if a vacancy is published not for the first time)
-                    existingVacancyFromDb.addUser(user);
-                    user.addVacancy(existingVacancyFromDb);
+                    user.addVacancy(vacancyFromDb);
                 }
             } else {
                 /* Adding new vacancy to the database */
@@ -227,43 +219,48 @@ public class UserService implements UserDetailsService {
                 // Checking addresses
                 Address vacancyAddress = vacancy.getAddress();
                 if (vacancyAddress != null) {
-                    Optional<Address> addressFromDb = addressRepository.findById(vacancyAddress.getId());
-                    addressFromDb.ifPresentOrElse(vacancy::setAddress, () -> {
-                        Address savedAddress = addressRepository.save(vacancyAddress);
-                        vacancy.setAddress(savedAddress);
-                    });
+                    Address addressFromDb = addressService.findById(vacancyAddress.getId());
+                    if (addressFromDb != null) {
+                        vacancy.setAddress(addressFromDb);
+                    } else {
+                        addressService.save(vacancyAddress);
+                        vacancyAddress.addVacancyPreview(vacancy);
+                        vacancy.setAddress(vacancyAddress);
+                    }
                 }
 
                 // Checking employer
                 VacancyEmployer vacancyEmployer = vacancy.getEmployer();
                 if (vacancyEmployer != null) {
-                    Optional<VacancyEmployer> employerFromDb = employerRepository.findById(vacancyEmployer.getId());
-                    employerFromDb.ifPresentOrElse(vacancy::setEmployer, () -> {
-                        VacancyEmployer savedEmployer = employerRepository.save(vacancyEmployer);
-                        vacancy.setEmployer(savedEmployer);
-                    });
+                    VacancyEmployer employerFromDb = employerService.findById(vacancyEmployer.getId());
+                    if (employerFromDb != null) {
+                        vacancy.setEmployer(employerFromDb);
+                    } else {
+                        employerService.save(vacancyEmployer);
+                        vacancyEmployer.addVacancyPreview(vacancy);
+                        vacancy.setEmployer(vacancyEmployer);
+                    }
                 }
 
                 // Checking area
                 VacancyArea vacancyArea = vacancy.getArea();
                 if (vacancyArea != null) {
-                    Optional<VacancyArea> areaFromDb = areaRepository.findById(vacancyArea.getId());
-                    areaFromDb.ifPresentOrElse(vacancy::setArea, () -> {
-                        VacancyArea savedArea = areaRepository.save(vacancyArea);
-                        vacancy.setArea(savedArea);
-                    });
+                    VacancyArea areaFromDb = areaService.findById(vacancyArea.getId());
+                    if (areaFromDb != null) {
+                        vacancy.setArea(areaFromDb);
+                    } else {
+                        areaService.save(vacancyArea);
+                        vacancyArea.addVacancyPreview(vacancy);
+                        vacancy.setArea(vacancyArea);
+                    }
                 }
 
-                vacancy.addUser(user);
+                vacanciesService.save(vacancy);
                 user.addVacancy(vacancy);
+
             }
         }
 
-        userRepository.save(user);
-        logger.info(String.format(user.getLastJobRequestVacancies().size() > 0 ?
-                "User %s is saved after adding vacancies" :
-                "No new vacancies are found for user %s",
-                user.getUsername()));
     }
 
     /**
@@ -289,21 +286,41 @@ public class UserService implements UserDetailsService {
     }
 
     /**
-     * Finds users from the database by telegram
-     * @param telegram telegram to find users by
-     * @return list of users with specified telegram
-     */
-    public List<User> findUsersByTelegram(@NotNull String telegram)  {
-        return userRepository.findByTelegram(telegram);
-    }
-
-    /**
      * Finds user from the database by chat id
      * @param chatId chat id by which user is found
      * @return user with specified chat id, if there's no such user returns null
      */
     public User findUserByChatId(@NotNull long chatId) {
         Optional<User> user = userRepository.findByChatId(chatId);
+        return user.orElse(null);
+    }
+
+    /**
+     * Removes vacancy from user and deletes all rows associated
+     * with vacancy if they are not used anymore
+     * @param user a user from which vacancy will be removed
+     * @param vacancy vacancy to be removed
+     */
+    @Transactional
+    public void removeVacancyFromUser(User user, VacancyPreview vacancy) {
+        // Removing vacancy from user
+        VacancyPreview removedVacancy = user.removeVacancy(vacancy);
+
+        // Checking if vacancy is not used by anybody anymore
+        if (removedVacancy != null) {
+            if (removedVacancy.getUsersVacancies().isEmpty()) {
+                vacanciesService.removeVacancy(removedVacancy);
+            }
+        }
+    }
+
+    /**
+     * Looks up for a user in the database by username
+     * @param username a username by which a search is done
+     * @return user if one exists in the database, null otherwise
+     */
+    public User findByUsername(String username) {
+        Optional<User> user = userRepository.findByUsername(username);
         return user.orElse(null);
     }
 }

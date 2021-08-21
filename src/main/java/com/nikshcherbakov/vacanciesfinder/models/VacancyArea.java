@@ -1,11 +1,11 @@
 package com.nikshcherbakov.vacanciesfinder.models;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.HashSet;
 import java.util.Set;
 
+@SuppressWarnings("unused")
 @Entity
 public class VacancyArea {
 
@@ -16,7 +16,7 @@ public class VacancyArea {
     @NotNull
     private String name;
 
-    @OneToMany(mappedBy = "vacancyArea")
+    @OneToMany(mappedBy = "vacancyArea", fetch = FetchType.EAGER)
     private Set<VacancyPreview> vacancyPreviews;
 
     public VacancyArea() {
@@ -49,5 +49,12 @@ public class VacancyArea {
 
     public void setVacancyPreviews(Set<VacancyPreview> vacancyPreviews) {
         this.vacancyPreviews = vacancyPreviews;
+    }
+
+    public void addVacancyPreview(VacancyPreview vacancy) {
+        if (vacancyPreviews == null) {
+            vacancyPreviews = new HashSet<>();
+        }
+        vacancyPreviews.add(vacancy);
     }
 }

@@ -7,8 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.io.IOException;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -18,7 +16,7 @@ class GoogleMapsServiceTest {
     GoogleMapsService googleMapsService;
 
     @Test
-    void travelTimeIsCalculated() throws IOException, GoogleMapsInvalidApiKeyException {
+    void travelTimeIsCalculated() throws GoogleMapsInvalidApiKeyException {
         // Case 1 - Travelling by car
         Location origin1 = new Location(55.74845688866654, 37.53842385932942);
         Location destination1 = new Location(55.74815029874091, 37.70095204877878);
@@ -39,7 +37,7 @@ class GoogleMapsServiceTest {
     }
 
     @Test
-    void nonExistingRouteIsHandledCorrectly() throws IOException, GoogleMapsInvalidApiKeyException {
+    void nonExistingRouteIsHandledCorrectly() throws GoogleMapsInvalidApiKeyException {
         // Try to build a route from Russia to the US by driving
         Location locationInRussia = new Location(55.74845688866654, 37.53842385932942);
         Location locationInUS = new Location(42.341536328921165, -71.10232147619853);
@@ -48,7 +46,7 @@ class GoogleMapsServiceTest {
     }
 
     @Test
-    void itReturnsCorrectTravelTimes() throws IOException, GoogleMapsInvalidApiKeyException {
+    void itReturnsCorrectTravelTimes() throws GoogleMapsInvalidApiKeyException {
         Location origin = new Location(54.5503322870497, 36.2972277553664);
         Location destination = new Location(54.53203438969385, 36.26749599769481);
         Integer travelTime = googleMapsService.calculateTravelTimeInMins(origin, destination, TravelType.CAR);

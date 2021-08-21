@@ -2,8 +2,6 @@ package com.nikshcherbakov.vacanciesfinder.controllers;
 
 import com.nikshcherbakov.vacanciesfinder.models.User;
 import com.nikshcherbakov.vacanciesfinder.models.VacancyPreview;
-import com.nikshcherbakov.vacanciesfinder.repositories.UserRepository;
-import com.nikshcherbakov.vacanciesfinder.repositories.VacancyPreviewRepository;
 import com.nikshcherbakov.vacanciesfinder.services.UserService;
 import com.nikshcherbakov.vacanciesfinder.services.VacanciesService;
 import org.springframework.stereotype.Controller;
@@ -12,22 +10,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.Optional;
+import java.util.List;
 
 @Controller
 public class VacanciesController {
 
     private final VacanciesService vacanciesService;
     private final UserService userService;
-    private final VacancyPreviewRepository vacancyRepository;
-    private final UserRepository userRepository;
 
-    public VacanciesController(VacanciesService vacanciesService, UserService userService,
-                               VacancyPreviewRepository vacancyRepository, UserRepository userRepository) {
+    public VacanciesController(VacanciesService vacanciesService, UserService userService) {
         this.vacanciesService = vacanciesService;
         this.userService = userService;
-        this.vacancyRepository = vacancyRepository;
-        this.userRepository = userRepository;
     }
 
     @GetMapping("/vacancies")
@@ -40,13 +33,15 @@ public class VacanciesController {
             redirectAttributes.addAttribute("page", 1);
             return "redirect:/vacancies";
         }
-        int userVacanciesPages = vacanciesService.pages(user.getVacancies());
+
+        List<VacancyPreview> userVacancies = user.getVacancies();
+        int userVacanciesPages = vacanciesService.pages(userVacancies);
         if (page > userVacanciesPages) {
             redirectAttributes.addAttribute("page", userVacanciesPages);
             return "redirect:/vacancies";
         }
 
-        model.addAttribute("vacancies", vacanciesService.getPage(user.getVacancies(), page));
+        model.addAttribute("vacancies", vacanciesService.getPage(userVacancies, page));
         model.addAttribute("page", page);
         model.addAttribute("nextPage", page + 1 <= userVacanciesPages? page + 1 : null);
         model.addAttribute("previousPage", page - 1 > 0? page - 1 : null);
@@ -57,12 +52,11 @@ public class VacanciesController {
     public String likeVacancy(@RequestParam(name = "id") Long id, @RequestParam(name = "fromPage") Integer fromPage,
                               RedirectAttributes redirectAttributes) {
         User user = userService.retrieveAuthenticatedUser();
-        Optional<VacancyPreview> vacancy = vacancyRepository.findById(id);
-        if (vacancy.isPresent()) {
-            user.addFavoriteVacancy(vacancy.get());
-            user.removeVacancy(vacancy.get());
+        VacancyPreview vacancy = vacanciesService.findById(id);
+        if (vacancy != null) {
+            user.likeVacancy(vacancy);
+            userService.save(user);
         }
-        userRepository.save(user);
         redirectAttributes.addAttribute("page", fromPage);
         return "redirect:/vacancies";
     }
@@ -77,28 +71,34 @@ public class VacanciesController {
             redirectAttributes.addAttribute("page", 1);
             return "redirect:/favoriteVacancies";
         }
-        int userFavoriteVacanciesPages = vacanciesService.pages(user.getFavoriteVacancies());
+
+        List<VacancyPreview> favoriteVacancies = user.getFavoriteVacancies();
+        int userFavoriteVacanciesPages = vacanciesService.pages(favoriteVacancies);
         if (page > userFavoriteVacanciesPages) {
             redirectAttributes.addAttribute("page", userFavoriteVacanciesPages);
             return "redirect:/favoriteVacancies";
         }
 
-        model.addAttribute("favoriteVacancies", vacanciesService.getPage(user.getFavoriteVacancies(), page));
+        model.addAttribute("favoriteVacancies", vacanciesService.getPage(favoriteVacancies, page));
         model.addAttribute("page", page);
         model.addAttribute("nextPage", page + 1 <= userFavoriteVacanciesPages? page + 1 : null);
-        model.addAttribute("previousPage", page - 1 > 0? page - 1 : null);
+        model.addAttribute("previousPage", page - 1 > 0 ? page - 1 : null);
         return "favorite-vacancies";
     }
 
     @GetMapping("/dislikeVacancy")
     public String dislikeVacancy(@RequestParam(name = "id") Long id, @RequestParam(name = "fromPage") Integer fromPage,
-                              RedirectAttributes redirectAttributes) {
+                                 @RequestParam(name = "redirectFrom", defaultValue = "favoriteVacancies") String redirectFrom,
+                                 RedirectAttributes redirectAttributes) {
         User user = userService.retrieveAuthenticatedUser();
-        Optional<VacancyPreview> favoriteVacancy = vacancyRepository.findById(id);
-        favoriteVacancy.ifPresent(user::removeFavoriteVacancy);
-        userRepository.save(user);
+        VacancyPreview dislikedVacancy = vacanciesService.findById(id);
+        if (dislikedVacancy != null) {
+            // Removing disliked vacancy from user
+            userService.removeVacancyFromUser(user, dislikedVacancy);
+        }
+
         redirectAttributes.addAttribute("page", fromPage);
-        return "redirect:/favoriteVacancies";
+        return String.format("redirect:/%s", redirectFrom);
     }
 
 }

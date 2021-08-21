@@ -23,7 +23,7 @@ class TelegramServiceTest {
     void itShouldSendMessageByTelegram() {
         // Case 1
         User testUser = new User("test@test.com", "password");
-        TelegramSettings telegramSettings = new TelegramSettings("example_telegram");
+        TelegramSettings telegramSettings = new TelegramSettings(testUser, "example_telegram");
         telegramSettings.setChatId(testChatId);
         testUser.setTelegramSettings(telegramSettings);
 

@@ -3,9 +3,9 @@ package com.nikshcherbakov.vacanciesfinder.models;
 import org.springframework.security.core.GrantedAuthority;
 
 import javax.persistence.*;
-import java.util.HashSet;
 import java.util.Set;
 
+@SuppressWarnings("unused")
 @Entity
 @Table(name = "roles")
 public class Role implements GrantedAuthority {

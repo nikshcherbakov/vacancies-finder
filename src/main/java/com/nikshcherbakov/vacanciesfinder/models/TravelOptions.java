@@ -8,7 +8,6 @@ import java.util.Objects;
 public class TravelOptions {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -19,13 +18,15 @@ public class TravelOptions {
 
     private String travelBy;
 
-    @OneToOne(mappedBy = "travelOptions")
+    @OneToOne(fetch = FetchType.LAZY)
+    @MapsId
     private User user;
 
     public TravelOptions() {
     }
 
-    public TravelOptions(@NotNull Location location, Integer travelTimeInMinutes, String travelBy) {
+    public TravelOptions(@NotNull User user, @NotNull Location location, Integer travelTimeInMinutes, String travelBy) {
+        this.user = user;
         this.location = location;
         this.travelTimeInMinutes = travelTimeInMinutes;
         this.travelBy = travelBy;

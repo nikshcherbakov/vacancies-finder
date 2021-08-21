@@ -149,74 +149,60 @@ public class HeadHunterService implements IJobSearchService {
         List<VacancyPreview> appropriateVacancies = new ArrayList<>();
 
         if (user.getTravelOptions() != null) {
-            // User specified location
-            Location userLocation = user.getTravelOptions().getLocation();
-            params.put("order_by", "distance");
-            params.put("sort_point_lat", String.valueOf(userLocation.getLatitude()));
-            params.put("sort_point_lng", String.valueOf(userLocation.getLongitude()));
-            params.put("label", "with_address");
+            if (user.getTravelOptions().getTravelTimeInMinutes() > 0) {
+                // User specified location
+                Location userLocation = user.getTravelOptions().getLocation();
+                params.put("order_by", "distance");
+                params.put("sort_point_lat", String.valueOf(userLocation.getLatitude()));
+                params.put("sort_point_lng", String.valueOf(userLocation.getLongitude()));
+                params.put("label", "with_address");
 
-            try {
-                List<VacancyPreview> vacanciesByDistance = requestVacanciesFromHH(params);
+                try {
+                    List<VacancyPreview> vacanciesByDistance = requestVacanciesFromHH(params);
 
-                // Looking for appropriate vacancies by travel time
-                Date departureDate = generateDepartureDate(); // departure date to calculate travel time in traffic
-                for (VacancyPreview vacancy : vacanciesByDistance) {
-                    TravelOptions userTravelOptions = user.getTravelOptions();
+                    // Looking for appropriate vacancies by travel time
+                    Date departureDate = generateDepartureDate(); // departure date to calculate travel time in traffic
+                    for (VacancyPreview vacancy : vacanciesByDistance) {
+                        TravelOptions userTravelOptions = user.getTravelOptions();
 
-                    Integer travelTimeInMins;
-                    Location vacancyLocation;
-                    TravelType userTravelBy = convertUserTravelByToTravelType(userTravelOptions.getTravelBy());
-                    if (vacancy.getAddress().getLocation().getLatitude() != null) {
-                        // Vacancy has explicitly stated location
-                        vacancyLocation = vacancy.getAddress().getLocation();
-                    } else {
-                        // Vacancy has only closest metro station or stations
-                        if (vacancy.getAddress().getMetro() != null) {
-                            // Closest metro station exists
-                            vacancyLocation = vacancy.getAddress().getMetro().getStationLocation();
+                        Integer travelTimeInMins;
+                        Location vacancyLocation;
+                        TravelType userTravelBy = convertUserTravelByToTravelType(userTravelOptions.getTravelBy());
+                        if (vacancy.getAddress().getLocation().getLatitude() != null) {
+                            // Vacancy has explicitly stated location
+                            vacancyLocation = vacancy.getAddress().getLocation();
                         } else {
-                            // There's no closest metro station - calculating average lat and lng
-                            List<MetroStation> vacancyMetroStations = vacancy.getAddress().getMetroStations();
-                            if (vacancyMetroStations.size() > 0) {
-                                Double sumLat = 0.0;
-                                Double sumLng = 0.0;
-                                for (MetroStation metroStation : vacancyMetroStations) {
-                                    sumLat += metroStation.getLat();
-                                    sumLng += metroStation.getLng();
-                                }
-
-                                vacancyLocation = new Location(sumLat / vacancyMetroStations.size(),
-                                        sumLng / vacancyMetroStations.size());
+                            // Vacancy has only closest metro station or stations
+                            if (vacancy.getAddress().getMetro() != null) {
+                                // Closest metro station exists
+                                vacancyLocation = vacancy.getAddress().getMetro().getStationLocation();
                             } else {
-                                // No information about vacancy location obtained
+                                // No information about vacancy location
                                 break;
                             }
                         }
-                    }
 
-                    // Calculating travel time using GoogleMapsService
-                    travelTimeInMins = googleMapsService.calculateTravelTimeInMins(userLocation, vacancyLocation,
-                            userTravelBy, departureDate);
+                        // Calculating travel time using GoogleMapsService
+                        travelTimeInMins = googleMapsService.calculateTravelTimeInMins(userLocation, vacancyLocation,
+                                userTravelBy, departureDate);
 
-                    if (travelTimeInMins <= userTravelOptions.getTravelTimeInMinutes()
-                            && travelTimeInMins != -1) {
-                        appropriateVacancies.add(vacancy);
+                        if (travelTimeInMins <= userTravelOptions.getTravelTimeInMinutes()
+                                && travelTimeInMins != -1) {
+                            appropriateVacancies.add(vacancy);
+                        }
                     }
+                    return appropriateVacancies;
+
+                } catch (HTTPEmptyGetParameterException e) {
+                    e.printStackTrace();
                 }
-                return appropriateVacancies;
-
-            } catch (HTTPEmptyGetParameterException e) {
-                e.printStackTrace();
             }
-
-        } else {
-            // User did not specify location
-            try {
-                appropriateVacancies = requestVacanciesFromHH(params);
-            } catch (HTTPEmptyGetParameterException e) {
-                e.printStackTrace();
-            }
+        }
+        // User did not specify location or travel time
+        try {
+            appropriateVacancies = requestVacanciesFromHH(params);
+        } catch (HTTPEmptyGetParameterException e) {
+            e.printStackTrace();
         }
         return appropriateVacancies;
     }

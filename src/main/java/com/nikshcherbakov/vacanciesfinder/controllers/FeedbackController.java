@@ -25,8 +25,8 @@ public class FeedbackController {
     @PostMapping(value = "/feedback")
     public String handleFeedback(@RequestParam String feedbackText) {
         User user = userService.retrieveAuthenticatedUser();
-        user.addFeedback(new Feedback(user, feedbackText));
-        userService.saveBondedUser(user);
+        user.addFeedback(new Feedback(feedbackText));
+        userService.save(user);
         return "thanks-for-feedback";
     }
 

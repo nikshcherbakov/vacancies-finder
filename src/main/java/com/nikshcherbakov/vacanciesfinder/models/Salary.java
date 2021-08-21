@@ -7,19 +7,20 @@ import java.util.Objects;
 public class Salary {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private Integer value;
     private String currency;
 
-    @OneToOne(mappedBy = "salary")
+    @OneToOne
+    @MapsId
     private User user;
 
     public Salary() {
     }
 
-    public Salary(Integer value, String currency) {
+    public Salary(User user, Integer value, String currency) {
+        this.user = user;
         this.value = value;
         this.currency = currency;
     }

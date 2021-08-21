@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -22,6 +21,9 @@ class VacanciesServiceTest {
     @Autowired
     private VacanciesService vacanciesService;
 
+    @Autowired
+    private UserService userService;
+
     @Test
     void getPageWorksCorrectly() {
         // Case 1
@@ -34,13 +36,13 @@ class VacanciesServiceTest {
                     .withName("Some vacancy")
                     .withEmployer(new VacancyEmployer(0L, "Some employer"))
                     .withPublishedAt(new Date())
-                    .withUsers(Collections.singleton(user1))
                     .withVacancySnippet(new VacancySnippet("requirement", "responsibility"))
                     .withArea(new VacancyArea((short) 0, "Some area"))
                     .build();
 
             user1.addVacancy(vacancy);
         }
+        userService.save(user1);
 
         List<VacancyTableRow> page_case1 = vacanciesService.getPage(user1.getVacancies(), 3);
         assertEquals(5, page_case1.size());
@@ -56,13 +58,13 @@ class VacanciesServiceTest {
                     .withName("Some vacancy")
                     .withEmployer(new VacancyEmployer(0L, "Some employer"))
                     .withPublishedAt(new Date())
-                    .withUsers(Collections.singleton(user1))
                     .withVacancySnippet(new VacancySnippet("requirement", "responsibility"))
                     .withArea(new VacancyArea((short) 0, "Some area"))
                     .build();
 
-            user1.addVacancy(vacancy);
+            user2.addVacancy(vacancy);
         }
+        userService.save(user2);
 
         List<VacancyTableRow> pageCase2 = vacanciesService.getPage(user2.getVacancies(), 2);
         assertNull(pageCase2);
@@ -84,20 +86,19 @@ class VacanciesServiceTest {
                     .withName("Some vacancy")
                     .withEmployer(new VacancyEmployer(0L, "Some employer"))
                     .withPublishedAt(new Date())
-                    .withUsers(Collections.singleton(user1))
                     .withVacancySnippet(new VacancySnippet("requirement", "responsibility"))
                     .withArea(new VacancyArea((short) 0, "Some area"))
                     .build();
 
             user1.addVacancy(vacancy);
         }
+        userService.save(user1);
 
         int user1Pages = vacanciesService.pages(user1.getVacancies());
         assertEquals(3, user1Pages);
 
         // Case 2
         User user2 = new User("username", "password");
-        user2.setVacancies(null);
 
         int user2Pages = vacanciesService.pages(user2.getVacancies());
         assertEquals(0, user2Pages);

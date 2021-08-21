@@ -5,6 +5,7 @@ import com.sun.istack.Nullable;
 
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class GoogleMapsRoute {
 
     public static class GoogleMapsLeg {

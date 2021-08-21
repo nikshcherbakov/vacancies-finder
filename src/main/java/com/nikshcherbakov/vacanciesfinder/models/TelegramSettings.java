@@ -8,7 +8,6 @@ import javax.persistence.*;
 @Entity
 public class TelegramSettings {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotNull
@@ -18,15 +17,17 @@ public class TelegramSettings {
     @Nullable
     private Long chatId;
 
-    @OneToOne(mappedBy = "telegramSettings")
+    @OneToOne(fetch = FetchType.LAZY)
+    @MapsId
     private User user;
 
     public TelegramSettings() {
     }
 
-    public TelegramSettings(String telegram) {
+    public TelegramSettings(User user, String telegram) {
         this.telegram = telegram;
         this.chatId = null;
+        this.user = user;
     }
 
     public Long getId() {

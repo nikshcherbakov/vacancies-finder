@@ -7,11 +7,9 @@ import com.sun.istack.Nullable;
 import javax.persistence.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
+@SuppressWarnings("unused")
 @Entity
 public class VacancyPreview {
 
@@ -62,8 +60,8 @@ public class VacancyPreview {
             return this;
         }
 
-        public Builder withUsers(@Nullable Set<User> users) {
-            vacancyPreview.users = users;
+        public Builder withUsersVacancies(@Nullable List<UserVacancy> users) {
+            vacancyPreview.usersVacancies = users;
             return this;
         }
 
@@ -73,11 +71,10 @@ public class VacancyPreview {
     }
 
     @Id
-    @NotNull
     private Long id;
 
     @Nullable
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.EAGER)
+    @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
     private Address address;
 
     @Nullable
@@ -92,12 +89,12 @@ public class VacancyPreview {
     private String url;
 
     @NotNull
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.EAGER)
+    @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
     private VacancyArea vacancyArea;
 
     @NotNull
     @JsonProperty("employer")
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.EAGER)
+    @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
     private VacancyEmployer vacancyEmployer;
 
     @NotNull
@@ -109,8 +106,8 @@ public class VacancyPreview {
     @Temporal(TemporalType.TIMESTAMP)
     private Date publishedAt;
 
-    @ManyToMany(mappedBy = "vacancies", fetch = FetchType.EAGER)
-    private Set<User> users;
+    @OneToMany(mappedBy = "vacancy", fetch = FetchType.EAGER, orphanRemoval = true)
+    private List<UserVacancy> usersVacancies = new ArrayList<>();
 
     public VacancyPreview() {
     }
@@ -155,6 +152,10 @@ public class VacancyPreview {
         return vacancySnippet;
     }
 
+    public void setSnippet(VacancySnippet snippet) {
+        this.vacancySnippet = snippet;
+    }
+
     public Date getPublishedAt() {
         return publishedAt;
     }
@@ -164,19 +165,19 @@ public class VacancyPreview {
         this.publishedAt = convertISO8601ToDate(publishedAt);
     }
 
-    public Set<User> getUsers() {
-        return users;
+    public List<UserVacancy> getUsersVacancies() {
+        return usersVacancies;
     }
 
-    public void setUsers(Set<User> users) {
-        this.users = users;
+    public void setUsersVacancies(List<UserVacancy> usersVacancies) {
+        this.usersVacancies = usersVacancies;
     }
 
-    public void addUser(User user) {
-        if (users == null) {
-            users = new HashSet<>();
+    public void addUserVacancy(UserVacancy user) {
+        if (usersVacancies == null) {
+            usersVacancies = new ArrayList<>();
         }
-        users.add(user);
+        usersVacancies.add(user);
     }
 
     public VacancyArea getArea() {
@@ -193,6 +194,10 @@ public class VacancyPreview {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public void setSalary(VacancySalary salary) {
+        this.salary = salary;
     }
 
     private static Date convertISO8601ToDate(String dateStr) throws ParseException {
@@ -265,12 +270,11 @@ public class VacancyPreview {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         VacancyPreview that = (VacancyPreview) o;
-        return id.equals(that.id) && Objects.equals(address, that.address) && Objects.equals(salary, that.salary) &&
-                name.equals(that.name) && Objects.equals(vacancyEmployer, that.vacancyEmployer);
+        return id.equals(that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, address, salary, name, vacancyEmployer);
+        return Objects.hash(id);
     }
 }

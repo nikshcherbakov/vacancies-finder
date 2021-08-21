@@ -2,8 +2,6 @@ package com.nikshcherbakov.vacanciesfinder.utils;
 
 import com.sun.istack.NotNull;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public class HTTPParameterStringBuilder {

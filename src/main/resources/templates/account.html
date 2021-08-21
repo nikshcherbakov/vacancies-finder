@@ -58,7 +58,7 @@
             <label for="changePassword" class="col-sm-2 col-form-label">Пароль</label>
             <div class="col-sm-10">
                 <div id="changePassword" class="form-control-plaintext">
-                    <a th:href="@{/changepassword}">Сменить пароль</a>
+                    <a th:href="@{/changePassword}">Сменить пароль</a>
                 </div>
             </div>
         </div>
@@ -88,8 +88,10 @@
                     <label class="form-check-label" for="sendByTelegramChecker">
                         Использовать Telegram при рассылке подобранных вакансий
                     </label>
-                    <input style="font-size: 10pt" th:if="${userForm.useTelegram}" type="text" class="form-control-plaintext"
-                           th:value="'Чтобы получать рассылку на Telegtam, найдите бота ' + ${botName} + ' и напишите /start'">
+                    <label>
+                        <input style="font-size: 10pt" th:if="${userForm.useTelegram}" type="text" class="form-control-plaintext"
+                               th:value="'Чтобы получать рассылку на Telegtam, найдите бота ' + ${botName} + ' и напишите /start'">
+                    </label>
                 </div>
             </div>
         </div>
@@ -167,6 +169,7 @@
                        th:field="*{salaryValue}">
             </div>
             <div class="col-sm-3">
+                <label for="currency"></label>
                 <select th:field="*{currency}" class="custom-select mr-sm-2" id="currency">
                     <option th:value="'RUB'">RUB</option>
                     <option th:value="'USD'">USD</option>

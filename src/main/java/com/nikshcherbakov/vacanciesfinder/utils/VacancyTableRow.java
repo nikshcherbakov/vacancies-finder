@@ -1,5 +1,6 @@
 package com.nikshcherbakov.vacanciesfinder.utils;
 
+@SuppressWarnings("unused")
 public class VacancyTableRow {
     public static class Builder {
         private final VacancyTableRow row;

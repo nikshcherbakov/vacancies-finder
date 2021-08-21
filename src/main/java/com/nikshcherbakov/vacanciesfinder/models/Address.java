@@ -3,53 +3,12 @@ package com.nikshcherbakov.vacanciesfinder.models;
 import com.sun.istack.Nullable;
 
 import javax.persistence.*;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
+@SuppressWarnings("unused")
 @Entity
 public class Address {
-
-    public static class Builder {
-        private final Address newAddress;
-
-        public Builder() {
-            newAddress = new Address();
-        }
-
-        public Builder withCity(String city) {
-            newAddress.city = city;
-            return this;
-        }
-
-        public Builder withStreet(String street) {
-            newAddress.street = street;
-            return this;
-        }
-
-        public Builder withBuilding(String building) {
-            newAddress.building = building;
-            return this;
-        }
-
-        public Builder withDescription(String description) {
-            newAddress.description = description;
-            return this;
-        }
-
-        public Builder withLocation(Location location) {
-            newAddress.location = location;
-            return this;
-        }
-
-        public Builder withMetroStations(List<MetroStation> metroStations) {
-            newAddress.metroStations = metroStations;
-            return this;
-        }
-
-        public Address build() {
-            return newAddress;
-        }
-    }
 
     @Id
     private Long id;
@@ -78,15 +37,12 @@ public class Address {
     @Nullable
     private Location location;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
+    @JoinColumn(name = "station_id")
     @Nullable
     private MetroStation metro;
 
-    @ManyToMany(cascade = CascadeType.ALL)
-    @Nullable
-    private List<MetroStation> metroStations;
-
-    @OneToMany(mappedBy = "address", orphanRemoval = true)
+    @OneToMany(mappedBy = "address", fetch = FetchType.EAGER)
     private Set<VacancyPreview> vacancyPreviews;
 
     public Address() {
@@ -149,14 +105,6 @@ public class Address {
         this.metro = metro;
     }
 
-    public List<MetroStation> getMetroStations() {
-        return metroStations;
-    }
-
-    public void setMetroStations(List<MetroStation> metroStations) {
-        this.metroStations = metroStations;
-    }
-
     public Double getLat() {
         return lat;
     }
@@ -181,6 +129,13 @@ public class Address {
 
     public void setVacancyPreviews(Set<VacancyPreview> vacancyPreviews) {
         this.vacancyPreviews = vacancyPreviews;
+    }
+
+    public void addVacancyPreview(VacancyPreview vacancy) {
+        if (vacancyPreviews == null) {
+            vacancyPreviews = new HashSet<>();
+        }
+        vacancyPreviews.add(vacancy);
     }
 
     /**

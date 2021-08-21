@@ -3,7 +3,6 @@ package com.nikshcherbakov.vacanciesfinder.controllers;
 import com.nikshcherbakov.vacanciesfinder.models.MailingPreference;
 import com.nikshcherbakov.vacanciesfinder.models.Role;
 import com.nikshcherbakov.vacanciesfinder.models.User;
-import com.nikshcherbakov.vacanciesfinder.repositories.UserRepository;
 import com.nikshcherbakov.vacanciesfinder.services.EmailService;
 import com.nikshcherbakov.vacanciesfinder.services.UserService;
 import org.springframework.stereotype.Controller;
@@ -14,8 +13,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import javax.validation.Valid;
 import java.util.Collections;
-import java.util.Optional;
 
+@SuppressWarnings("SpringMVCViewInspection")
 @Controller
 public class SignUpController {
 
@@ -23,12 +22,9 @@ public class SignUpController {
 
     private final EmailService emailService;
 
-    private final UserRepository userRepository;
-
-    public SignUpController(UserService userService, EmailService emailService, UserRepository userRepository) {
+    public SignUpController(UserService userService, EmailService emailService) {
         this.userService = userService;
         this.emailService = emailService;
-        this.userRepository = userRepository;
     }
 
     @GetMapping(value = "/signup")
@@ -84,14 +80,13 @@ public class SignUpController {
             return "404";
         }
 
-        Optional<User> userFromDb = userRepository.findByUsername(username);
+        User userFromDb = userService.findByUsername(username);
 
-        if (userFromDb.isPresent()) {
+        if (userFromDb != null) {
             // User exists
-            User user = userFromDb.get();
-            if (user.getPassword().equals(hash) && !user.isEnabled()) {
-                user.setEnabled(true);
-                userRepository.save(user);
+            if (userFromDb.getPassword().equals(hash) && !userFromDb.isEnabled()) {
+                userFromDb.setEnabled(true);
+                userService.save(userFromDb);
                 return "successful-confirmation";
             } else {
                 return "404";

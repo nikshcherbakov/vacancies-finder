@@ -1,17 +1,23 @@
 package com.nikshcherbakov.vacanciesfinder.controllers;
 
 import com.nikshcherbakov.vacanciesfinder.models.*;
+import com.nikshcherbakov.vacanciesfinder.services.EmailService;
 import com.nikshcherbakov.vacanciesfinder.services.UserService;
+import com.nikshcherbakov.vacanciesfinder.utils.ChangePasswordForm;
 import com.nikshcherbakov.vacanciesfinder.utils.TelegramIsNotDefinedException;
 import com.nikshcherbakov.vacanciesfinder.utils.TelegramIsTakenException;
 import com.nikshcherbakov.vacanciesfinder.utils.UserAccountForm;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 
@@ -31,9 +37,15 @@ public class AccountController {
     private String botName;
 
     private final UserService userService;
+    private final EmailService emailService;
 
-    public AccountController(UserService userService) {
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    public AccountController(UserService userService, EmailService emailService,
+                             BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.userService = userService;
+        this.emailService = emailService;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
     @GetMapping("/account")
@@ -89,7 +101,6 @@ public class AccountController {
                     userForm.getLongitude() != defaultLongitude ||
                     userForm.getSalaryValue() != null;
 
-
             model.addAttribute("savedSuccessfully", changesSaved);
             model.addAttribute("botName", botName);
             model.addAttribute("mailingIsActive", mailingIsActive);
@@ -129,7 +140,13 @@ public class AccountController {
             }
         }
 
-        TravelOptions travelOptions = null;
+        if (form.isUseTelegram() && telegram == null) {
+            // User is trying to use telegram for sending notifications
+            // without providing telegram
+            throw new TelegramIsNotDefinedException();
+        }
+
+        /* Travel options */
         if (userFromDb.getTravelOptions() == null) {
             // Save user's location only if one changed default location or specified travel time
             boolean userChangedDefaultLocation = form.getLatitude() != defaultLatitude ||
@@ -137,61 +154,109 @@ public class AccountController {
             boolean userSpecifiedTravelTime = form.getTravelTimeInMins() != 0;
 
             if (userChangedDefaultLocation || userSpecifiedTravelTime) {
-                travelOptions = new TravelOptions(new Location(form.getLatitude(), form.getLongitude()),
-                        form.getTravelTimeInMins(), form.getTravelBy());
+                userFromDb.setTravelOptions(new TravelOptions(userFromDb,
+                        new Location(form.getLatitude(), form.getLongitude()),
+                        form.getTravelTimeInMins(), form.getTravelBy()));
             }
         } else {
-            // Just bind new travel options to current user
-            travelOptions = new TravelOptions(new Location(form.getLatitude(), form.getLongitude()),
-                    form.getTravelTimeInMins(), form.getTravelBy());
+            // Refreshing travel options
+            TravelOptions userTravelOptions = userFromDb.getTravelOptions();
+            userTravelOptions.setLocation(new Location(form.getLatitude(), form.getLongitude()));
+            userTravelOptions.setTravelTimeInMinutes(form.getTravelTimeInMins());
+            userTravelOptions.setTravelBy(form.getTravelBy());
         }
 
-        Salary salary = null;
+        /* Salary */
         if (form.getSalaryValue() != null) {
-            salary = new Salary(form.getSalaryValue(), form.getCurrency());
+            if (userFromDb.getSalary() == null) {
+                // Setting up salary
+                userFromDb.setSalary(new Salary(userFromDb, form.getSalaryValue(), form.getCurrency()));
+            } else {
+                // Refreshing user's salary
+                Salary userSalary = userFromDb.getSalary();
+                userSalary.setValue(form.getSalaryValue());
+                userSalary.setCurrency(form.getCurrency());
+            }
+        } else {
+            userFromDb.setSalary(null);
         }
 
-        TelegramSettings telegramSettings = null;
+        /* Telegram */
         if (telegram != null) {
-            telegramSettings = new TelegramSettings(telegram);
+            if (userFromDb.getTelegramSettings() == null) {
+                // Setting up telegram
+                userFromDb.setTelegramSettings(new TelegramSettings(userFromDb, telegram));
+            } else {
+                TelegramSettings userTelegramSettings = userFromDb.getTelegramSettings();
+                userTelegramSettings.setTelegram(telegram);
+            }
+        } else {
+            userFromDb.setTelegramSettings(null);
+            mailingPreference = new MailingPreference(form.isUseEmail(), false);
         }
 
         /* Adding changed fields to a user */
         userFromDb.setSearchFilters(searchFilters);
         userFromDb.setMailingPreference(mailingPreference);
 
-        if (userFromDb.getTelegramSettings() != null) {
-            if (!userFromDb.getTelegramSettings().getTelegram().equals(telegram)) {
-                // User changed telegram - deleting one cause it's OneToOne relationship
-                userFromDb.setTelegramSettings(telegram != null ? new TelegramSettings(telegram) : null);
-            }
-        } else {
-            // Nothing to delete - adding new telegram settings to a user
-            userFromDb.setTelegramSettings(telegramSettings);
-        }
-
-        if (userFromDb.getSalary() != null) {
-            if (!userFromDb.getSalary().equals(salary)) {
-                // User changed salary - deleting one cause it's OneToOne relationship
-                userFromDb.setSalary(salary);
-            }
-        } else {
-            // There's nothing to delete - just adding new salary to a user
-            userFromDb.setSalary(salary);
-        }
-
-        if (userFromDb.getTravelOptions() != null) {
-            if (!userFromDb.getTravelOptions().equals(travelOptions)) {
-                // User changed travel options - deleting it cause it's OneToOne relationship
-                userFromDb.setTravelOptions(travelOptions);
-            }
-        } else {
-            // There's nothing to delete - just adding new travel options to a user
-            userFromDb.setTravelOptions(travelOptions);
-        }
-
         userService.saveUser(userFromDb);
         return true;
+    }
+
+    @GetMapping("/changePassword")
+    public String showChangePassword(@RequestParam(name = "user", required = false) String username,
+                                     @RequestParam(name = "hash", required = false) String hashValue,
+                                     Model model) {
+        if (username == null && hashValue == null) {
+            User user = userService.retrieveAuthenticatedUser();
+
+            // Sending a user a message with the instructions to change password
+            emailService.sendChangePasswordMessage(user);
+
+            return "change-password-instructions-sent";
+        } else {
+            // Handling password change
+            if (username != null && hashValue != null) {
+                // Checking if a user exists
+                User userFromDb = userService.findByUsername(username);
+                if (userFromDb != null) {
+                    if (userFromDb.isEnabled() && hashValue.equals(userFromDb.getPassword())) {
+                        model.addAttribute("changePasswordForm",
+                                new ChangePasswordForm(userFromDb.getUsername(), userFromDb.getPassword()));
+                        return "change-password";
+                    }
+                }
+            }
+        }
+        return "404";
+    }
+
+    @PostMapping("/changePassword")
+    public String handleChangePassword(@RequestParam(name = "user") String username,
+                                       @RequestParam(name = "hash") String hashValue, @Valid ChangePasswordForm form,
+                                       BindingResult bindingResult, Model model) {
+        // Checking if a form does not contain errors
+        if (bindingResult.hasErrors()) {
+            return "change-password";
+        }
+        User userFromDb = userService.findUserByUsername(username);
+        if (userFromDb != null) {
+            if (userFromDb.isEnabled() && hashValue.equals(userFromDb.getPassword())) {
+                // User is confirmed
+                if (form.getPassword().equals(form.getPasswordConfirm())) {
+                    // Setting up a new password
+                    userFromDb.setPassword(bCryptPasswordEncoder.encode(form.getPassword()));
+                    userService.save(userFromDb);
+                    return "changed-password-confirmed";
+                } else {
+                    // Password does not match password confirmation
+                    model.addAttribute("passwordDoesNotMatchPasswordConfirm", true);
+                    model.addAttribute("changePasswordForm", form);
+                    return "change-password";
+                }
+            }
+        }
+        return "404";
     }
 
 }

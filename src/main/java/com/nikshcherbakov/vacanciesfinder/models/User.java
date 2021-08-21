@@ -8,6 +8,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.*;
 
+@SuppressWarnings("unused")
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {
@@ -35,16 +36,16 @@ public class User implements UserDetails {
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Role> roles;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
     private MailingPreference mailingPreference;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private TelegramSettings telegramSettings;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private TravelOptions travelOptions;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Salary salary;
 
     private String searchFilters;
@@ -55,17 +56,14 @@ public class User implements UserDetails {
     @Temporal(TemporalType.TIMESTAMP)
     private Date lastJobRequestDate;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private List<VacancyPreview> vacancies;
-
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private List<VacancyPreview> favoriteVacancies;
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserVacancy> usersVacancies = new ArrayList<>();
 
     @Transient
     private List<VacancyPreview> lastJobRequestVacancies;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @Column(name = "feedback")
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "user_id")
     private List<Feedback> feedbackList;
 
     public User() {
@@ -212,79 +210,27 @@ public class User implements UserDetails {
         this.lastJobRequestDate = lastJobRequestDate;
     }
 
-    public List<VacancyPreview> getVacancies() {
-        return vacancies;
-    }
-
-    public void setVacancies(List<VacancyPreview> vacancies) {
-        this.vacancies = vacancies;
-    }
-
-    public void addVacancy(VacancyPreview vacancy) {
-        if (vacancies == null) {
-            vacancies = new ArrayList<>();
-        }
-        vacancies.add(vacancy);
-    }
-
-    public void addVacancies(Collection<VacancyPreview> vacancies) {
-        if (vacancies == null) {
-            return;
-        }
-        if (this.vacancies == null) {
-            this.vacancies = new ArrayList<>();
-        }
-        this.vacancies.addAll(vacancies);
-    }
-
-    public void removeVacancy(VacancyPreview vacancy) {
-        if (vacancies == null) {
-            return;
-        }
-        vacancies.remove(vacancy);
-    }
-
-    public List<VacancyPreview> getFavoriteVacancies() {
-        return favoriteVacancies;
-    }
-
-    public void setFavoriteVacancies(List<VacancyPreview> favoriteVacancies) {
-        this.favoriteVacancies = favoriteVacancies;
-    }
-
-    public void addFavoriteVacancy(VacancyPreview vacancy) {
-        if (vacancy == null) {
-            return;
-        }
-        if (favoriteVacancies == null) {
-            favoriteVacancies = new ArrayList<>();
-        }
-        favoriteVacancies.add(vacancy);
-    }
-
-    public void addFavoriteVacancies(Collection<VacancyPreview> vacancies) {
-        if (vacancies == null) {
-            return;
-        }
-        if (favoriteVacancies == null) {
-            favoriteVacancies = new ArrayList<>();
-        }
-        favoriteVacancies.addAll(vacancies);
-    }
-
-    public void removeFavoriteVacancy(VacancyPreview vacancy) {
-        if (favoriteVacancies == null) {
-            return;
-        }
-        favoriteVacancies.remove(vacancy);
-    }
-
     public List<VacancyPreview> getLastJobRequestVacancies() {
         return lastJobRequestVacancies;
     }
 
     public void setLastJobRequestVacancies(List<VacancyPreview> lastJobRequestVacancies) {
         this.lastJobRequestVacancies = lastJobRequestVacancies;
+    }
+
+    public List<UserVacancy> getUsersVacancies() {
+        return usersVacancies;
+    }
+
+    public void setUsersVacancies(List<UserVacancy> usersVacancies) {
+        this.usersVacancies = usersVacancies;
+    }
+
+    public void addUserVacancy(UserVacancy userVacancy) {
+        if (usersVacancies == null) {
+            usersVacancies = new ArrayList<>();
+        }
+        usersVacancies.add(userVacancy);
     }
 
     public List<Feedback> getFeedbackList() {
@@ -300,6 +246,87 @@ public class User implements UserDetails {
             feedbackList = new ArrayList<>();
         }
         feedbackList.add(feedback);
+    }
+
+    /**
+     * Adds saved vacancy to a user
+     * @param vacancy vacancy that needs to be saved
+     */
+    public void addVacancy(VacancyPreview vacancy) {
+        UserVacancy userVacancy = new UserVacancy(this, vacancy);
+        usersVacancies.add(userVacancy);
+        vacancy.getUsersVacancies().add(userVacancy);
+    }
+
+    /**
+     * Adds a user's vacancy to favorites
+     * @param vacancy vacancy from user's vacancies list to be added
+     *                to favorite vacancies
+     */
+    public void likeVacancy(VacancyPreview vacancy) {
+        for (UserVacancy userVacancy : usersVacancies) {
+            if (userVacancy.getVacancy().equals(vacancy)) {
+                userVacancy.setFavorite(true);
+            }
+        }
+    }
+
+    /**
+     * Returns list of non-favorite vacancies
+     * @return list of a user's vacancies
+     */
+    public List<VacancyPreview> getVacancies() {
+        List<VacancyPreview> vacancies = new ArrayList<>();
+        for (UserVacancy userVacancy : usersVacancies) {
+            if (!userVacancy.getFavorite()) {
+                vacancies.add(userVacancy.getVacancy());
+            }
+        }
+        return vacancies;
+    }
+
+
+    /**
+     * Returns user's favorite vacancies
+     * @return list of a user's favorite vacancies
+     */
+    public List<VacancyPreview> getFavoriteVacancies() {
+        List<VacancyPreview> favoriteVacancies = new ArrayList<>();
+        for (UserVacancy userVacancy : usersVacancies) {
+            if (userVacancy.getFavorite()) {
+                favoriteVacancies.add(userVacancy.getVacancy());
+            }
+        }
+        return favoriteVacancies;
+    }
+
+    /**
+     * Removes vacancy from a user
+     * @param vacancy vacancy to be removed
+     * @return user vacancy that will finally be removed, null if vacancy
+     * is not found in user's list of vacancies
+     * @implNote Note that the method does not actually delete the vacancy
+     * using cascading. It just removes the vacancy from the user. Also note
+     * that input vacancy could differ from vacancy that will be removed, so
+     * use returned vacancy for the future operations with cascade deleting
+     */
+    public VacancyPreview removeVacancy(VacancyPreview vacancy) {
+        for (Iterator<UserVacancy> iterator = usersVacancies.iterator(); iterator.hasNext(); ) {
+            UserVacancy userVacancy = iterator.next();
+
+            if (userVacancy.getUser().equals(this) && userVacancy.getVacancy().equals(vacancy)) {
+                iterator.remove();
+
+                VacancyPreview vacancyToBeRemoved = userVacancy.getVacancy();
+
+                vacancyToBeRemoved.getUsersVacancies().remove(userVacancy);
+                userVacancy.setUser(null);
+                userVacancy.setVacancy(null);
+
+                return vacancyToBeRemoved;
+            }
+        }
+        return null;
     }
 
     /**

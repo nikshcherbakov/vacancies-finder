@@ -1,11 +1,11 @@
 package com.nikshcherbakov.vacanciesfinder.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.sun.istack.NotNull;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 
+@SuppressWarnings("unused")
 @Entity
 public class VacancySnippet {
 
@@ -13,18 +13,13 @@ public class VacancySnippet {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
     @Type(type = "text")
     @JsonProperty("requirement")
     private String requirement;
 
-    @NotNull
     @Type(type = "text")
     @JsonProperty("responsibility")
     private String responsibility;
-
-    @OneToOne(mappedBy = "vacancySnippet")
-    private VacancyPreview vacancyPreview;
 
     public VacancySnippet(String requirement, String responsibility) {
         this.requirement = requirement;
@@ -58,11 +53,4 @@ public class VacancySnippet {
         this.id = id;
     }
 
-    public VacancyPreview getVacancyPreview() {
-        return vacancyPreview;
-    }
-
-    public void setVacancyPreview(VacancyPreview vacancyPreview) {
-        this.vacancyPreview = vacancyPreview;
-    }
 }

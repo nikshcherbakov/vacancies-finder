@@ -1,5 +1,6 @@
 package com.nikshcherbakov.vacanciesfinder.utils;
 
+@SuppressWarnings("unused")
 public class UserAccountForm {
 
     private String username;

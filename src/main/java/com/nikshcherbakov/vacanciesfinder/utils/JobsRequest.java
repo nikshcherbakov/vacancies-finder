@@ -4,6 +4,7 @@ import com.nikshcherbakov.vacanciesfinder.models.VacancyPreview;
 
 import java.util.List;
 
+@SuppressWarnings("unused")
 public abstract class JobsRequest {
 
     private List<VacancyPreview> items;
@@ -13,14 +14,6 @@ public abstract class JobsRequest {
     private Integer page;
 
     public JobsRequest() {
-    }
-
-    public JobsRequest(List<VacancyPreview> items, Integer found, Integer pages, Integer perPage, Integer page) {
-        this.items = items;
-        this.found = found;
-        this.pages = pages;
-        this.perPage = perPage;
-        this.page = page;
     }
 
     public List<VacancyPreview> getItems() {

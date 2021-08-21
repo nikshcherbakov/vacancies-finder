@@ -4,6 +4,7 @@ import javax.persistence.*;
 import java.util.Objects;
 import java.util.Set;
 
+@SuppressWarnings("unused")
 @Entity
 public class MailingPreference {
 

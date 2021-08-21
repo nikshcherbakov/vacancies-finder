@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.io.IOException;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -34,7 +33,7 @@ class HeadHunterServiceTest {
     }
 
     @Test
-    void testRequestReturnsVacanciesUsingDifferentLanguages() throws IOException, HTTPEmptyGetParameterException {
+    void testRequestReturnsVacanciesUsingDifferentLanguages() throws HTTPEmptyGetParameterException {
 
         // English
         Map<String, String> paramsEng = new HashMap<>();
@@ -60,7 +59,7 @@ class HeadHunterServiceTest {
     }
 
     @Test
-    void searchVacanciesByUserSinceDateWorksFine() throws IOException, GoogleMapsInvalidApiKeyException {
+    void searchVacanciesByUserSinceDateWorksFine() throws GoogleMapsInvalidApiKeyException {
         // Case 1 - Just a simple user without location
         User user1 = new User("simpleUser", "password");
         user1.setSearchFilters("Junior;Java;Backend");
@@ -76,7 +75,7 @@ class HeadHunterServiceTest {
         // Case 2 - User specified filters and salary
         User user2 = new User("simpleUser", "password");
         user2.setSearchFilters("Junior;Java;Backend");
-        user2.setSalary(new Salary(80000, "RUB"));
+        user2.setSalary(new Salary(user2, 80000, "RUB"));
 
         calendar = new GregorianCalendar();
         calendar.add(Calendar.DAY_OF_YEAR, -7);
@@ -102,8 +101,8 @@ class HeadHunterServiceTest {
         // Case 3 - User specified filters and location
         User user3 = new User("userWithLocation", "password");
         user3.setSearchFilters("Junior;Java;Backend");
-        user3.setSalary(new Salary(80000, "RUB"));
-        user3.setTravelOptions(new TravelOptions(new Location(55.59225991787999, 37.598054613086425),
+        user3.setSalary(new Salary(user3, 80000, "RUB"));
+        user3.setTravelOptions(new TravelOptions(user3, new Location(55.59225991787999, 37.598054613086425),
                 90, "car"));
 
         List<VacancyPreview> vacanciesFound3 = headHunterService.searchVacanciesByUserSinceDate(user3, yesterdayDate);
@@ -125,8 +124,8 @@ class HeadHunterServiceTest {
         // Case 4 - User did not specify search filters
         User user4 = new User("userWithoutSearchFilters", "password");
         user4.setSearchFilters(null);
-        user4.setSalary(new Salary(80000, "RUB"));
-        user4.setTravelOptions(new TravelOptions(new Location(55.59225991787999, 37.598054613086425),
+        user4.setSalary(new Salary(user4, 80000, "RUB"));
+        user4.setTravelOptions(new TravelOptions(user4, new Location(55.59225991787999, 37.598054613086425),
                 30, "public_transport"));
 
         List<VacancyPreview> vacanciesFound4 = headHunterService.searchVacanciesByUserSinceDate(user4, yesterdayDate);
@@ -143,7 +142,7 @@ class HeadHunterServiceTest {
 
         // Case 6 - Walking route
         User user6 = new User("simpleUser", "password");
-        user6.setTravelOptions(new TravelOptions(new Location(55.59225991787999, 37.598054613086425),
+        user6.setTravelOptions(new TravelOptions(user6, new Location(55.59225991787999, 37.598054613086425),
                 90, "walking"));
 
         List<VacancyPreview> vacanciesFound6 = headHunterService.searchVacanciesByUserSinceDate(user6, yesterdayDate);
@@ -153,33 +152,23 @@ class HeadHunterServiceTest {
     }
 
     @Test
-    void searchNextByUserWorksFine() throws IOException, GoogleMapsInvalidApiKeyException {
+    void searchNextByUserWorksFine() throws GoogleMapsInvalidApiKeyException {
         // Case 1 - New user without vacancies found
         User user1 = new User("newUser", "password");
+        user1.setRegistrationDate(new Date());
         user1.setSearchFilters("Программист;Java");
         assertNull(user1.getLastJobRequestDate());
         List<VacancyPreview> vacancies1 = headHunterService.searchNextByUser(user1);
         assertEquals(0, vacancies1.size());
         assertNotNull(user1.getLastJobRequestDate());
 
-        // Case 2 - User with a vacancy found already
+        // Case 2 - User with lastJobRequestDate set up
+        Date registrationDate = new GregorianCalendar(2021, Calendar.JULY, 2,
+                23, 0, 0).getTime();
+
         User user2 = new User("existingUser", "password");
+        user2.setRegistrationDate(registrationDate);
         user2.setSearchFilters("Java;Backend;Junior");
-        List<VacancyPreview> vacanciesList = new ArrayList<>();
-
-        VacancyPreview vacancy = new VacancyPreview.Builder()
-                .withId(0L)
-                .withName("Vacancy name")
-                .withEmployer(new VacancyEmployer(0L, "Vacancy employer"))
-                .withVacancySnippet(new VacancySnippet("Vacancy requirement",
-                        "Vacancy responsibility"))
-                .withArea(new VacancyArea((short) 0, "Some area"))
-                .withPublishedAt(new GregorianCalendar(2021, Calendar.JULY, 3, 22, 0,
-                        0).getTime())
-                .build();
-
-        vacanciesList.add(vacancy);
-        user2.setVacancies(vacanciesList);
 
         Date lastJobRequestDate = new GregorianCalendar(2021, Calendar.JULY, 3,
                 23, 0, 0).getTime();
@@ -190,45 +179,33 @@ class HeadHunterServiceTest {
         assertNotNull(vacancies2.get(0).getName());
         if (vacancies2.size() > 2) {
             assertFalse(vacancies2.get(0).getPublishedAt().before(vacancies2.get(1).getPublishedAt()));
-            assertTrue(vacancies2.get(vacancies2.size() - 1).getPublishedAt().
-                    after(user2.getVacancies().get(0).getPublishedAt()));
         }
         Date newJobRequestDate = user2.getLastJobRequestDate();
         assertTrue(lastJobRequestDate.before(newJobRequestDate));
 
         // Case 3 - User with all possible information set up
         User user3 = new User("fullUser", "password");
-        user3.setVacancies(vacanciesList);
+        user3.setRegistrationDate(registrationDate);
         user3.setLastJobRequestDate(lastJobRequestDate);
         user3.setSearchFilters("Менеджер;Продажи");
-        user3.setSalary(new Salary(80000, "RUB"));
-        user3.setTravelOptions(new TravelOptions(new Location(55.59225991787999, 37.598054613086425),
+        user3.setSalary(new Salary(user3, 80000, "RUB"));
+        user3.setTravelOptions(new TravelOptions(user3, new Location(55.59225991787999, 37.598054613086425),
                 90, "public_transport"));
         List<VacancyPreview> vacancies3 = headHunterService.searchNextByUser(user3);
         assertTrue(vacancies3.size() > 0);
         assertNotNull(vacancies3.get(0).getName());
         if (vacancies3.size() > 2) {
             assertFalse(vacancies3.get(0).getPublishedAt().before(vacancies3.get(1).getPublishedAt()));
-            assertTrue(vacancies3.get(vacancies3.size() - 1).getPublishedAt().
-                    after(user2.getVacancies().get(0).getPublishedAt()));
         }
         newJobRequestDate = user2.getLastJobRequestDate();
         assertTrue(lastJobRequestDate.before(newJobRequestDate));
 
         // Case 4 - User's getting empty list of vacancies if he did not provide any information
         User user4 = new User("emptyUser", "password");
+        user4.setRegistrationDate(registrationDate);
         user4.setLastJobRequestDate(lastJobRequestDate);
         List<VacancyPreview> vacancies4 = headHunterService.searchNextByUser(user4);
         assertEquals(0, vacancies4.size());
-
-        // Case 5 - User that made just one request already
-        User user5 = new User("userWithOneRequest", "password");
-        user5.setSearchFilters("Менеджер;Продажи");
-        user5.setLastJobRequestDate(lastJobRequestDate);
-        List<VacancyPreview> vacancies5 = headHunterService.searchNextByUser(user5);
-        assertTrue(vacancies5.size() > 0);
-        newJobRequestDate = user2.getLastJobRequestDate();
-        assertTrue(lastJobRequestDate.before(newJobRequestDate));
     }
 
 }

@@ -1,30 +1,30 @@
 package com.nikshcherbakov.vacanciesfinder.models;
 
+import org.hibernate.annotations.Type;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 
+@SuppressWarnings("unused")
 @Entity
 public class Feedback {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private Long id;
 
+    @Type(type = "text")
     private String feedbackText;
 
     @NotNull
     @Temporal(value = TemporalType.TIMESTAMP)
     private Date publishedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private User user;
-
     public Feedback() {
     }
 
-    public Feedback(User user, String feedbackText) {
-        this.user = user;
+    public Feedback(String feedbackText) {
         this.feedbackText = feedbackText;
         publishedAt = new Date();
     }
@@ -53,11 +53,4 @@ public class Feedback {
         this.publishedAt = publishedAt;
     }
 
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
 }

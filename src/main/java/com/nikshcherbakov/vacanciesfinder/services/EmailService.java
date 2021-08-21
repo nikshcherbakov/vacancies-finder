@@ -23,6 +23,12 @@ public class EmailService implements IDistributorService {
     @Value("${spring.mail.username}")
     private String from;
 
+    @Value("${app.urls.basicurl}")
+    private String basicUrl;
+
+    @Value("${app.urls.protocol}")
+    private String protocol;
+
     private static final Logger logger = LoggerFactory.getLogger(VacanciesFinderApplication.class);
 
     private final JavaMailSender mailSender;
@@ -155,4 +161,28 @@ public class EmailService implements IDistributorService {
         return false;
     }
 
+    /**
+     * Sends a user instructions how to change password by email
+     * @param user a user to which the instructions are going to be sent
+     */
+    public void sendChangePasswordMessage(User user) {
+        String userEmail = user.getUsername();
+        String serviceUrl = String.format("%s://%s", protocol, basicUrl);
+        String changePasswordConfirmUrl =
+                String.format("%s/changePassword?user=%s&hash=%s", serviceUrl, userEmail, user.getPassword());
+
+        String subject = "Vacancies Finder - Смена пароля";
+        String text = "Здравствуйте, это Vacancies Finder!\n" +
+                "\n" +
+                "С вашего аккаунта поступил запрос на смену пароля. Для подтвержения смены пароля, пожалуйста, " +
+                String.format("перейдите по ссылке %s.\n", changePasswordConfirmUrl) +
+                "\n" +
+                "С уважением, команда Vacancies Finder.";
+        try {
+            sendMessage(userEmail, subject, text);
+        } catch (MessagingException e) {
+            logger.error(String.format("Error occurred while sending changing " +
+                    "password confirmation message to a user %s", userEmail));
+        }
+    }
 }

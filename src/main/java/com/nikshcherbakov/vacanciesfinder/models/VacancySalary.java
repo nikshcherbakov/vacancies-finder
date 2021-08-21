@@ -4,6 +4,7 @@ import com.sun.istack.Nullable;
 
 import javax.persistence.*;
 
+@SuppressWarnings("unused")
 @Entity
 public class VacancySalary {
 
@@ -25,13 +26,6 @@ public class VacancySalary {
     private String currency;
 
     public VacancySalary() {
-    }
-
-    public VacancySalary(Integer from, Integer to, Boolean gross, String currency) {
-        this.from = from;
-        this.to = to;
-        this.gross = gross;
-        this.currency = currency;
     }
 
     public Long getId() {
@@ -73,4 +67,6 @@ public class VacancySalary {
     public void setCurrency(String currency) {
         this.currency = currency;
     }
+
+
 }
