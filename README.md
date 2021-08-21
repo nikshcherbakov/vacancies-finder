@@ -55,7 +55,7 @@
 Ниже на схеме представлены сущности, используемые в приложении и их связи
 
 
-![Vacancies-Finder-ER](https://user-images.githubusercontent.com/74429654/130235491-820266e7-6662-42cf-9594-4fb7e447de80.png)
+![Vacancies-Finder-ER](https://user-images.githubusercontent.com/74429654/130314613-78c84ed6-99cc-4505-83c2-45dadcdeb4c7.png)
 
 ## Сценарий взаимодействия с пользователем
 
